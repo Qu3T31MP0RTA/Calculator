@@ -80,3 +80,19 @@ button {
 .operation-button:hover {
     background-color: #f69906a8;
 }
+#equal{
+    grid-row: span 2;
+    background-color: #f9544c;
+}
+#equal:hover{
+    background-color: #f9544ca8;
+}
+#zero{
+    grid-column: span 2;
+}
+.side-button{
+    background-color: #333;
+}
+.side-button:hover{
+    background-color: #333333a8;
+}
