@@ -28,13 +28,12 @@ body {
    3. Secciones
    ===================== */
 .calculation {
-    z-index: 1;
+
     display: flex;
     justify-content: space-around;
     flex-direction: column;
     background-color: rgb(9, 9, 9);
     width: 100%;
-    margin: 5px;
     align-items: center;
 
 }
@@ -43,9 +42,14 @@ body {
     display: none;
 }
 
+h2 {
+    margin: 0;
+}
+
 .history {
     background-color: red;
     width: 100%;
+    margin: 0;
 
 }
 
@@ -71,7 +75,6 @@ body {
    ===================== */
 .display input {
     width: 95%;
-    padding: 15px 10px;
     font-size: 35px;
 
     color: white;
@@ -92,15 +95,18 @@ body {
     align-items: center;
     justify-content: center;
     gap: 5px;
-    width: 95%;
+    width: 90%;
     margin-top: 40px;
+    margin-right: 10px;
+    margin-left: 10px;
+
 }
 
 button {
-    font-size: 12px;
-    padding: 8px;
+    font-size: 10px;
+    padding: 6px;
     width: 100%;
-    margin: 2px;
+    margin: 3px;
     border: none;
     border-radius: 6px;
     color: white;
@@ -112,15 +118,19 @@ button {
 }
 
 .orange {
-    width: 9.09%;
+    width: 20%;
 }
 
 .blackLite {
-    width: 9.09%;
+    width: 20%;
 }
 
 .black {
-    width: 9.09%;
+    width: 20%;
+}
+
+.blackLite-memory {
+    width: 20%;
 }
 
 /* =====================
@@ -166,7 +176,6 @@ button {
    7. Botones especiales
    ===================== */
 #equal {
-    grid-row: span 1;
     background-color: #f9544c;
 }
 
@@ -174,6 +183,30 @@ button {
     background-color: #f9544ca8;
 }
 
-#zero {
-    grid-column: span 1;
+.black {
+    display: none;
+}
+
+.basic {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 90%;
+    margin-top: 40px;
+    margin-right: 10px;
+    margin-left: 10px;
+}
+.basic{
+    display: none;
+}
+.scientific {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 90%;
+    margin-top: 40px;
+    margin-right: 10px;
+    margin-left: 10px;
 }
