@@ -197,9 +197,7 @@ button {
     margin-right: 10px;
     margin-left: 10px;
 }
-.basic{
-    display: none;
-}
+
 .scientific {
     display: flex;
     align-items: center;
@@ -209,4 +207,5 @@ button {
     margin-top: 40px;
     margin-right: 10px;
     margin-left: 10px;
+
 }
