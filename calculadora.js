@@ -8,6 +8,12 @@ let equal = document.getElementById("equal");
 let clear = document.getElementById("clear");
 let erase = document.getElementById("erase");
 let historyContent = document.getElementById("historyContent");
+const bmore = document.querySelector('#clickk');
+const mMore = document.querySelector("#precionar")
+
+bmore.addEventListener("click", (e) => {
+    mMore.classList.toggle('memoryButton');
+})
 
 // =========================
 // 2. Inicialización
@@ -15,6 +21,7 @@ let historyContent = document.getElementById("historyContent");
 window.onload = () => {
     input.value = "";
 };
+
 
 // =========================
 // 3. Manejo de botones
@@ -44,7 +51,8 @@ buttons.forEach((button) => {
 // =========================
 // 4. Calcular expresión
 // =========================
-equal.addEventListener("click", () => {
+function calcularResultado() {
+
     equalPressed = 1;
     let inputValue = input.value;
 
@@ -71,13 +79,15 @@ equal.addEventListener("click", () => {
     } catch (error) {
         alert("Error: " + error.message);
     }
-});
+}
+equal.addEventListener("click", calcularResultado);
+
 
 // =========================
 // 5. Funciones auxiliares
 // =========================
 function factorial(n) {
-    if (n === 0 || n === 1) return 1;
+    if (n <= 1) return 1;
     return n * factorial(n - 1);
 }
 
@@ -89,7 +99,7 @@ function addToHistory(expresion, result) {
     // Estilos contenedor historial
     divItem.className = "historyItem";
     divItem.style.display = "flex";
-    divItem.style.justifyContent = "space-between";
+    divItem.style.justifyContent = "center";
 
     // Texto del historial
     span.textContent = `${expresion} = ${result}`;
