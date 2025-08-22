@@ -80,7 +80,7 @@ function calcularResultado() {
         let expresion = inputValue;
         expresion = expresion.replaceAll("xylog(", "logxy(");
         expresion = expresion
-            .replaceAll(/\bacoth\b/g, "Math.acosh")
+            .replaceAll(/\bacoth\b/g, "Math.acoth")
             .replaceAll(/\bacsch\b/g, "Math.acsch")
             .replaceAll(/\basech\b/g, "Math.asech")
             .replaceAll(/\basin\b/g, "Math.asin")
@@ -177,3 +177,4 @@ function addToHistory(expresion, result) {
     divItem.appendChild(button);
     historyContent.appendChild(divItem);
 }
+
