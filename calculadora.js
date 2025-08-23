@@ -10,11 +10,11 @@ let clear = document.getElementById("clear");
 let erase = document.getElementById("erase");
 let historyContent = document.getElementById("historyContent");
 const bmore = document.querySelector('#clickk');
-const mMore = document.querySelector("#precionar")
+const mMore = document.querySelector("#precionar");
 
 bmore.addEventListener("click", (e) => {
     mMore.classList.toggle('memoryButton');
-})
+});
 
 // =========================
 // 2. Inicialización
@@ -22,7 +22,6 @@ bmore.addEventListener("click", (e) => {
 window.onload = () => {
     input.value = "";
 };
-
 
 // =========================
 // 3. Manejo de botones
@@ -44,14 +43,31 @@ buttons.forEach((button) => {
             input.value = input.value.slice(0, -1);
             return;
         }
+        if (value === "+/-") {
+            // Si hay un número en pantalla
+            if (input.value.startsWith("-")) {
+                input.value = input.value.slice(1);
+            } else if (input.value !== "") {
+                input.value = "-" + input.value;
 
-        input.value += value;
+            }
+            return;
+
+        }
+        if (value === "%") {
+            if (input.value != "") {
+                input.value = (parseFloat(input.value) / 100).toString();
+                return;
+            }
+        }
+
+        else { input.value += value; }
     });
 });
+
 // =========================
 // 3.5 funciones matematicas
 // =========================
-
 Math.sec = function (x) { return 1 / Math.cos(x); };
 Math.cot = function (x) { return 1 / Math.tan(x); };
 Math.csc = function (x) { return 1 / Math.sin(x); };
@@ -70,15 +86,34 @@ Math.acsch = function (x) { return Math.log((1 / x) + Math.sqrt(1 + 1 / (x * x))
 function logxy(x, y) { return Math.log(x) / Math.log(y); };
 
 // =========================
+// Funciones DMS y DEG
+// =========================
+function DMS(x) {
+    let grados = Math.floor(x);
+    let minutosDecimal = (x - grados) * 60;
+    let minutos = Math.floor(minutosDecimal);
+    let segundos = (minutosDecimal - minutos) * 60;
+    return `${grados}° ${minutos}' ${segundos.toFixed(2)}"`;
+}
+function DEG(g, m, s) {
+    return g + (m / 60) + (s / 3600);
+}
+
+// =========================
 // 4. Calcular expresión
 // =========================
 function calcularResultado() {
     equalPressed = 1;
     let inputValue = input.value;
-
     try {
         let expresion = inputValue;
+
+        // Reemplazos matemáticos
+        expresion = expresion.replaceAll("pow(", "Math.pow(");
         expresion = expresion.replaceAll("xylog(", "logxy(");
+        expresion = expresion.replace(/(\d+\.?\d*)→dms/g, 'DMS($1)');
+        expresion = expresion.replace(/(\d+),(\d+),(\d+)→deg/g, 'DEG($1,$2,$3)');
+
         expresion = expresion
             .replaceAll(/\bacoth\b/g, "Math.acoth")
             .replaceAll(/\bacsch\b/g, "Math.acsch")
@@ -104,7 +139,7 @@ function calcularResultado() {
             .replaceAll(/\bsec\b/g, "Math.sec")
             .replaceAll(/\bcot\b/g, "Math.cot")
             .replaceAll(/\bcsc\b/g, "Math.csc")
-            .replaceAll("x^2", "**2")
+            .replaceAll("²", "**2")
             .replaceAll("x^3", "**3")
             .replaceAll("²√x", "Math.sqrt")
             .replaceAll("∛x", "Math.cbrt")
@@ -113,19 +148,16 @@ function calcularResultado() {
             .replaceAll("log(", "Math.log10(")
             .replaceAll("e^", "Math.exp(")
             .replaceAll("10^", "10**")
-            .replaceAll("x^y", "**")
-            .replaceAll("|x|", "Math.abs(")
-            .replaceAll("⌊x⌋", "Math.floor(")
-            .replaceAll("⌈x⌉", "Math.ceil(")
+            .replaceAll("|x|(", "Math.abs(")
+            .replaceAll("⌊x⌋(", "Math.floor(")
+            .replaceAll("⌈x⌉(", "Math.ceil(")
             .replaceAll(/(\d+)!/g, (_, num) => factorial(Number(num)));
 
         let result = eval(expresion);
 
-        if (Number.isNaN(result) || !Number.isFinite(result)) {
-            throw new Error("Invalid result");
-        }
+        // Mostrar correctamente si es string (DMS) o número
+        input.value = typeof result === "string" ? result : (Number.isInteger(result) ? result : result.toFixed(2));
 
-        input.value = Number.isInteger(result) ? result : result.toFixed(2);
         addToHistory(inputValue, input.value);
 
     } catch (error) {
@@ -133,8 +165,8 @@ function calcularResultado() {
     }
 }
 
-equal.addEventListener("click", calcularResultado);
 
+equal.addEventListener("click", calcularResultado);
 
 // =========================
 // 5. Funciones auxiliares
@@ -177,4 +209,3 @@ function addToHistory(expresion, result) {
     divItem.appendChild(button);
     historyContent.appendChild(divItem);
 }
-
