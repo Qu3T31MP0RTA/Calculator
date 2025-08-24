@@ -44,21 +44,33 @@ buttons.forEach((button) => {
             return;
         }
         if (value === "+/-") {
-            // Si hay un número en pantalla
-            if (input.value.startsWith("-")) {
-                input.value = input.value.slice(1);
-            } else if (input.value !== "") {
-                input.value = "-" + input.value;
-
+            let expr = input.value;
+            let regex = /(-?\d+(\.\d+)?)(?!.*\d)/;
+            let match = expr.match(regex);
+            if (match) {
+                let numero = match[0];
+                let numeroInvertido = numero.startsWith("-") ? numero.slice(1) : "-" + numero;
+                input.value = expr.slice(0, match.index) + numeroInvertido + expr.slice(match.index + numero.length);
             }
-            return;
 
+            return;
         }
+
+
         if (value === "%") {
-            if (input.value != "") {
+            if (input.value !== "") {
                 input.value = (parseFloat(input.value) / 100).toString();
                 return;
             }
+        }
+        if (value === "1/") {
+            if (input.value !== "" && parseFloat(input.value) !== 0) {
+                input.value = (1 / parseFloat(input.value)).toString();
+            }
+            else {
+                alert("Error: División entre 0");
+            }
+            return;
         }
 
         else { input.value += value; }
@@ -98,6 +110,9 @@ function DMS(x) {
 function DEG(g, m, s) {
     return g + (m / 60) + (s / 3600);
 }
+function mod(a, b) {
+    return ((a % b) + b) % b;
+}
 
 // =========================
 // 4. Calcular expresión
@@ -115,6 +130,7 @@ function calcularResultado() {
         expresion = expresion.replace(/(\d+),(\d+),(\d+)→deg/g, 'DEG($1,$2,$3)');
 
         expresion = expresion
+            .replaceAll("MOD(", "mod(")
             .replaceAll(/\bacoth\b/g, "Math.acoth")
             .replaceAll(/\bacsch\b/g, "Math.acsch")
             .replaceAll(/\basech\b/g, "Math.asech")
@@ -144,6 +160,7 @@ function calcularResultado() {
             .replaceAll("²√x", "Math.sqrt")
             .replaceAll("∛x", "Math.cbrt")
             .replaceAll("yroot(", "Math.pow(")
+            .replaceAll("exp(", "Math.exp(")
             .replaceAll("ln(", "Math.log(")
             .replaceAll("log(", "Math.log10(")
             .replaceAll("e^", "Math.exp(")
