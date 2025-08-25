@@ -1,3 +1,28 @@
+var bd;
+function runbd() {
+    var solicitud = indexedDB.open("Resulado-y-operaciones");
+    solicitud.addEventListener("error", MostrarError);
+    solicitud.addEventListener("success", Comenzar);
+    solicitud.addEventListener("upgradeneeded", Crearalmacen);
+}
+function MostrarError(evento) {
+    alert("Error" + evento.code + "/" + evento.message);
+}
+function Comenzar(evento) {
+    bd = evento.target.result;
+console.log("f")
+}
+function Crearalmacen(evento) {
+    var baseDatos = evento.target.result;
+    var almacen = baseDatos.createObjectStore("numero",{keyPath:false});
+    almacen.createIndex("numero", "input", { unique: false });
+    console.log("f")
+}
+window.addEventListener("load", runbd)
+
+
+
+
 // =========================
 // 1. Variables principales
 // =========================
@@ -156,7 +181,7 @@ function calcularResultado() {
             .replaceAll(/\bcot\b/g, "Math.cot")
             .replaceAll(/\bcsc\b/g, "Math.csc")
             .replaceAll("²", "**2")
-            .replaceAll("x^3", "**3")
+            .replaceAll("³", "**3")
             .replaceAll("²√x", "Math.sqrt")
             .replaceAll("∛x", "Math.cbrt")
             .replaceAll("yroot(", "Math.pow(")
