@@ -128,14 +128,16 @@ button {
 .orange,
 .blackLite,
 .black,
-.blackLite-memory {
+.blackLite-memory,
+.basic-memory {
     width: 20%;
 }
 
 .blackLite-memory {
+    margin-top: 35px;
     display: flex;
     flex-direction: column;
-    min-height: 245px;
+    height: 280px ;
     justify-content: flex-start;
 }
 
@@ -210,6 +212,8 @@ button {
     display: none;
 }
 
+
+
 .scientific {
     display: flex;
     align-items: center;
@@ -217,7 +221,6 @@ button {
     gap: 5px;
     width: 90%;
     margin-top: 5px;
-
     margin-right: 10px;
 
 }
