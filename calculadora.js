@@ -1,25 +1,40 @@
 var bd;
 function runbd() {
-    var solicitud = indexedDB.open("Resulado-y-operaciones");
+    var btnGuardar = document.querySelector(".btnGuardar");
+    btnGuardar.addEventListener("click", almacenarNumero);
+
+    var solicitud = indexedDB.open("Resulado-y-operaciones",);
     solicitud.addEventListener("error", MostrarError);
     solicitud.addEventListener("success", Comenzar);
     solicitud.addEventListener("upgradeneeded", Crearalmacen);
 }
+
 function MostrarError(evento) {
-    alert("Error" + evento.code + "/" + evento.message);
+    console.error("Error", evento);
 }
+
 function Comenzar(evento) {
     bd = evento.target.result;
-console.log("f")
+    console.log("BD abierta correctamente");
 }
+
 function Crearalmacen(evento) {
     var baseDatos = evento.target.result;
-    var almacen = baseDatos.createObjectStore("numero",{keyPath:false});
-    almacen.createIndex("numero", "input", { unique: false });
-    console.log("f")
+    var almacen = baseDatos.createObjectStore("numero", { keyPath: "id", autoIncrement: true });
+    almacen.createIndex("numero", "numero", { unique: false });
+    console.log("Almacén creado");
 }
-window.addEventListener("load", runbd)
 
+function almacenarNumero() {
+    var n = document.querySelector("#input").value;
+
+    var transaction = bd.transaction(["numero"], "readwrite");
+    var almacen = transaction.objectStore("numero");
+    almacen.add({ numero: n });
+
+    // document.querySelector("#input").value = "";
+}
+window.addEventListener("load", runbd);
 
 
 
