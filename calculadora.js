@@ -1,9 +1,11 @@
 var bd;
+var nm;
+console.log(nm)
 function runbd() {
     var btnGuardar = document.querySelector(".btnGuardar");
     btnGuardar.addEventListener("click", almacenarNumero);
 
-    var solicitud = indexedDB.open("Resulado-y-operaciones",);
+    var solicitud = indexedDB.open("Resultado-y-operaciones",);
     solicitud.addEventListener("error", MostrarError);
     solicitud.addEventListener("success", Comenzar);
     solicitud.addEventListener("upgradeneeded", Crearalmacen);
@@ -15,22 +17,20 @@ function MostrarError(evento) {
 
 function Comenzar(evento) {
     bd = evento.target.result;
-    console.log("BD abierta correctamente");
 }
 
 function Crearalmacen(evento) {
     var baseDatos = evento.target.result;
     var almacen = baseDatos.createObjectStore("numero", { keyPath: "id", autoIncrement: true });
     almacen.createIndex("numero", "numero", { unique: false });
-    console.log("Almacén creado");
 }
 
 function almacenarNumero() {
-    var n = document.querySelector("#input").value;
+    var ne =nm;
 
     var transaction = bd.transaction(["numero"], "readwrite");
     var almacen = transaction.objectStore("numero");
-    almacen.add({ numero: n });
+    almacen.add({ numero: ne });
 
     // document.querySelector("#input").value = "";
 }
@@ -211,7 +211,7 @@ function calcularResultado() {
             .replaceAll(/(\d+)!/g, (_, num) => factorial(Number(num)));
 
         let result = eval(expresion);
-
+console.log(expresion)
         // Mostrar correctamente si es string (DMS) o número
         input.value = typeof result === "string" ? result : (Number.isInteger(result) ? result : result.toFixed(2));
 
@@ -221,10 +221,7 @@ function calcularResultado() {
         alert("Error: " + error.message);
     }
 }
-
-
 equal.addEventListener("click", calcularResultado);
-
 // =========================
 // 5. Funciones auxiliares
 // =========================
@@ -237,6 +234,8 @@ function addToHistory(expresion, result) {
     let divItem = document.createElement("div");
     let span = document.createElement("span");
     let button = document.createElement("button");
+    span.className = "guardarsiosi";
+
 
     // Estilos contenedor historial
     divItem.className = "historyItem";
@@ -248,7 +247,7 @@ function addToHistory(expresion, result) {
     span.dataset.userInput = expresion;
     span.style.cursor = "pointer";
     span.style.color = "white";
-
+    nm = span.textContent = `${expresion} = ${result}`;
     // Botón eliminar historial
     button.textContent = "Delete";
     button.className = "btn-sm";
@@ -265,4 +264,5 @@ function addToHistory(expresion, result) {
     divItem.appendChild(span);
     divItem.appendChild(button);
     historyContent.appendChild(divItem);
+
 }
