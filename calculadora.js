@@ -1,11 +1,12 @@
 var bd;
 var nm;
-console.log(nm)
+var memoryContainer;
 function runbd() {
+    memoryContainer = document.querySelector("#Memory");
     var btnGuardar = document.querySelector(".btnGuardar");
     btnGuardar.addEventListener("click", almacenarNumero);
 
-    var solicitud = indexedDB.open("Resultado-y-operaciones",);
+    var solicitud = indexedDB.open("Resultado-y-operaciones");
     solicitud.addEventListener("error", MostrarError);
     solicitud.addEventListener("success", Comenzar);
     solicitud.addEventListener("upgradeneeded", Crearalmacen);
@@ -17,6 +18,7 @@ function MostrarError(evento) {
 
 function Comenzar(evento) {
     bd = evento.target.result;
+    Mostrar();
 }
 
 function Crearalmacen(evento) {
@@ -26,13 +28,45 @@ function Crearalmacen(evento) {
 }
 
 function almacenarNumero() {
-    var ne =nm;
+    var ne = nm;
 
     var transaction = bd.transaction(["numero"], "readwrite");
     var almacen = transaction.objectStore("numero");
+    transaction.addEventListener("complete", Mostrar);
     almacen.add({ numero: ne });
 
     // document.querySelector("#input").value = "";
+}
+function Mostrar() {
+    memoryContainer.innerHTML = "";
+
+    var transaccion = bd.transaction(["numero"]);
+    var almacen = transaccion.objectStore(["numero"]);
+    var puntero = almacen.openCursor();
+    puntero.addEventListener("success", MostrarNumero);
+}
+function MostrarNumero(evento) {
+    var puntero = evento.target.result;
+    if (puntero) {
+        memoryContainer.innerHTML += "<div>" +
+            puntero.value.numero +
+
+            ' <input type="button" class="btn-editar" value="Editar" onclick="seleccionarEcuacion(\''+puntero.value.id+'\')">' +
+
+            "</div>";
+
+        puntero.continue();
+    }
+}
+
+function seleccionarEcuacion(key) {
+    var transaccion = bd.transaction(["numero"], "readwrite");
+    var almacen = transaccion.objectStore("numero");
+    var solicitud = almacen.get(key);
+
+    solicitud.addEventListener("success", function () {
+    document.querySelector(nm).value = solicitud.result.nm;
+    });
 }
 window.addEventListener("load", runbd);
 
@@ -211,7 +245,7 @@ function calcularResultado() {
             .replaceAll(/(\d+)!/g, (_, num) => factorial(Number(num)));
 
         let result = eval(expresion);
-console.log(expresion)
+        console.log(expresion)
         // Mostrar correctamente si es string (DMS) o número
         input.value = typeof result === "string" ? result : (Number.isInteger(result) ? result : result.toFixed(2));
 
