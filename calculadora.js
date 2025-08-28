@@ -1,74 +1,147 @@
-var bd;
-var nm;
-var memoryContainer;
+// =========================
+// Variables principales
+// =========================
+var bd;               // Base de datos
+var nm;               // Valor actual del input (ecuación)
+var res;              // Resultado calculado de la ecuación
+var memoryContainer;  // Contenedor donde se mostrarán los registros
+var idEnEdicion = null; // Guarda el id del registro que se está editando
+
+// =========================
+// Inicialización al cargar la página
+// =========================
 function runbd() {
     memoryContainer = document.querySelector("#Memory");
     var btnGuardar = document.querySelector(".btnGuardar");
+
+    // Asociar evento click al botón Guardar
     btnGuardar.addEventListener("click", almacenarNumero);
 
+    // Abrir base de datos IndexedDB
     var solicitud = indexedDB.open("Resultado-y-operaciones");
-    solicitud.addEventListener("error", MostrarError);
-    solicitud.addEventListener("success", Comenzar);
-    solicitud.addEventListener("upgradeneeded", Crearalmacen);
+    solicitud.addEventListener("error", MostrarError);       // Manejo de errores
+    solicitud.addEventListener("success", Comenzar);         // Conexión exitosa
+    solicitud.addEventListener("upgradeneeded", Crearalmacen); // Crear almacen si no existe
 }
 
-function MostrarError(evento) {
-    console.error("Error", evento);
-}
-
-function Comenzar(evento) {
-    bd = evento.target.result;
-    Mostrar();
-}
-
+// =========================
+// Crear almacen de datos
+// =========================
 function Crearalmacen(evento) {
     var baseDatos = evento.target.result;
+
+    // Creamos un objectStore llamado "numero" con clave primaria autoincremental
     var almacen = baseDatos.createObjectStore("numero", { keyPath: "id", autoIncrement: true });
-    almacen.createIndex("numero", "numero", { unique: false });
+
+    // Creamos índices para poder buscar por ecuación o resultado si se desea
+    almacen.createIndex("ecuacion", "ecuacion", { unique: false });
+    almacen.createIndex("resultado", "resultado", { unique: false });
 }
 
+// =========================
+// Guardar o actualizar un registro
+// =========================
 function almacenarNumero() {
-    var ne = nm;
+    // Validación: no guardar ecuación vacía
+    if (!nm || nm.trim() === "") {
+        alert("No puedes guardar una ecuación vacía.");
+        return;
+    }
 
+    // Iniciamos transacción en modo lectura/escritura
     var transaction = bd.transaction(["numero"], "readwrite");
     var almacen = transaction.objectStore("numero");
-    transaction.addEventListener("complete", Mostrar);
-    almacen.add({ numero: ne });
 
-    // document.querySelector("#input").value = "";
+    if (idEnEdicion !== null) {
+        // Si estamos editando, actualizamos el registro existente
+        almacen.put({ id: idEnEdicion, ecuacion: nm, resultado: res });
+        idEnEdicion = null; // Reseteamos la edición
+    } else {
+        // Si no, agregamos un nuevo registro
+        almacen.add({ ecuacion: nm, resultado: res });
+    }
+
+    // Cuando la transacción se completa, mostramos los registros actualizados
+    transaction.addEventListener("complete", Mostrar);
+
+    // Limpiamos input y variables
+    document.querySelector("#input").value = "";
+    nm = "";
+    res = "";
 }
+
+// =========================
+// Mostrar todos los registros
+// =========================
 function Mostrar() {
     memoryContainer.innerHTML = "";
 
     var transaccion = bd.transaction(["numero"]);
-    var almacen = transaccion.objectStore(["numero"]);
+    var almacen = transaccion.objectStore("numero");
     var puntero = almacen.openCursor();
+
     puntero.addEventListener("success", MostrarNumero);
 }
+
+// =========================
+// Mostrar cada registro individual con botón para editar
+// =========================
 function MostrarNumero(evento) {
     var puntero = evento.target.result;
+
     if (puntero) {
-        memoryContainer.innerHTML += "<div>" +
-            puntero.value.numero +
-
-            ' <input type="button" class="btn-editar" value="Editar" onclick="seleccionarEcuacion(\''+puntero.value.id+'\')">' +
-
-            "</div>";
-
-        puntero.continue();
+        memoryContainer.innerHTML += `
+            <div>
+                <strong>Ecuación:</strong> ${puntero.value.ecuacion} <br>
+                <strong>Resultado:</strong> ${puntero.value.resultado} <br>
+                <button class="editarr" onclick="editarEcuacion(${puntero.value.id})">Editar</button>
+            </div>
+        `;
+        puntero.continue(); // Pasar al siguiente registro
     }
 }
 
-function seleccionarEcuacion(key) {
-    var transaccion = bd.transaction(["numero"], "readwrite");
+// =========================
+// Cargar registro en el input para editarlo
+// =========================
+function editarEcuacion(id) {
+    var transaccion = bd.transaction(["numero"], "readonly");
     var almacen = transaccion.objectStore("numero");
-    var solicitud = almacen.get(key);
+    var solicitud = almacen.get(id);
 
     solicitud.addEventListener("success", function () {
-    document.querySelector(nm).value = solicitud.result.nm;
+        let resultado = solicitud.result;
+
+        if (resultado) {
+            idEnEdicion = id; // Guardamos el id del registro en edición
+            document.querySelector("#input").value = resultado.ecuacion; // Mostramos ecuación
+            nm = resultado.ecuacion; // Actualizamos variable nm
+            res = resultado.resultado; // Actualizamos variable res
+        }
     });
 }
+
+// =========================
+// Manejo de errores
+// =========================
+function MostrarError(evento) {
+    console.error("Error", evento);
+}
+
+// =========================
+// Conexión exitosa a la base de datos
+// =========================
+function Comenzar(evento) {
+    bd = evento.target.result;
+    Mostrar(); // Mostrar registros al iniciar
+}
+
+// =========================
+// Inicializar todo al cargar la página
+// =========================
 window.addEventListener("load", runbd);
+
+
 
 
 
@@ -150,6 +223,29 @@ buttons.forEach((button) => {
         else { input.value += value; }
     });
 });
+function parseEcuacion(input) {
+    // 1️⃣ Lista de caracteres permitidos
+    const permitidos = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-*/=^() ";
+
+    // 2️⃣ Verificar que cada carácter sea válido
+    for (let i = 0; i < input.length; i++) {
+        if (!permitidos.includes(input[i])) {
+            return { valido: false, error: `Carácter inválido: "${input[i]}"` };
+        }
+    }
+
+    // 3️⃣ Tokenización: separar números, letras y operadores
+    const regex = /[a-zA-Z]+|\d+(\.\d+)?|[+\-*/^=()]/g;
+    const tokens = input.match(regex);
+
+    // 4️⃣ Revisar que haya tokens válidos
+    if (!tokens || tokens.length === 0) {
+        return { valido: false, error: "Ecuación vacía o inválida" };
+    }
+
+    // ✅ Todo válido
+    return { valido: true, tokens: tokens };
+}
 
 // =========================
 // 3.5 funciones matematicas
@@ -281,7 +377,8 @@ function addToHistory(expresion, result) {
     span.dataset.userInput = expresion;
     span.style.cursor = "pointer";
     span.style.color = "white";
-    nm = span.textContent = `${expresion} = ${result}`;
+    res = span.textContent = `${result}`;
+    nm = span.textContent = `${expresion}`;
     // Botón eliminar historial
     button.textContent = "Delete";
     button.className = "btn-sm";
