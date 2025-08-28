@@ -246,3 +246,7 @@ button {
     display: none;
     flex-direction: column;
 }
+.editarr{
+    color: black;
+    width: 50px;
+}
