@@ -91,10 +91,16 @@ function MostrarNumero(evento) {
 
     if (puntero) {
         memoryContainer.innerHTML += `
-            <div>
+            <div class="contenido">
                 <strong>Ecuación:</strong> ${puntero.value.ecuacion} <br>
                 <strong>Resultado:</strong> ${puntero.value.resultado} <br>
-                <button class="editarr" onclick="editarEcuacion(${puntero.value.id})">Editar</button>
+                <div class = "Flex">
+                <button class="borrar" value="Borrar" onclick="eliminarNumero(${puntero.value.id})">Borrar</button>
+                <button class="Mmas">M+</button>
+                <button class="Mmenos">M-</button>
+                <button class="editarr"  onclick="editarEcuacion(${puntero.value.id})">Editar</button>
+                </div>
+
             </div>
         `;
         puntero.continue(); // Pasar al siguiente registro
@@ -122,12 +128,26 @@ function editarEcuacion(id) {
 }
 
 // =========================
+// botone de eliminar
+// =========================
+function eliminarNumero(key) {
+    var transaccion = bd.transaction(["numero"], "readwrite");
+    var almacen = transaccion.objectStore("numero");
+    var solicitud = almacen.delete(key);
+    transaccion.addEventListener("complete", Mostrar);
+}
+function eliminarTodo() {
+    var transaccion = bd.transaction(["numero"], "readwrite");
+    var almacen = transaccion.objectStore("numero");
+    var solicitud = almacen.clear();
+    transaccion.addEventListener("complete", Mostrar);
+}
+// =========================
 // Manejo de errores
 // =========================
 function MostrarError(evento) {
     console.error("Error", evento);
 }
-
 // =========================
 // Conexión exitosa a la base de datos
 // =========================
@@ -224,26 +244,26 @@ buttons.forEach((button) => {
     });
 });
 function parseEcuacion(input) {
-    // 1️⃣ Lista de caracteres permitidos
+    //  Lista de caracteres permitidos
     const permitidos = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-*/=^() ";
 
-    // 2️⃣ Verificar que cada carácter sea válido
+    //  Verificar que cada carácter sea válido
     for (let i = 0; i < input.length; i++) {
         if (!permitidos.includes(input[i])) {
             return { valido: false, error: `Carácter inválido: "${input[i]}"` };
         }
     }
 
-    // 3️⃣ Tokenización: separar números, letras y operadores
+    //  Tokenización: separar números, letras y operadores
     const regex = /[a-zA-Z]+|\d+(\.\d+)?|[+\-*/^=()]/g;
     const tokens = input.match(regex);
 
-    // 4️⃣ Revisar que haya tokens válidos
+    //  Revisar que haya tokens válidos
     if (!tokens || tokens.length === 0) {
         return { valido: false, error: "Ecuación vacía o inválida" };
     }
 
-    // ✅ Todo válido
+    // Todo válido
     return { valido: true, tokens: tokens };
 }
 
@@ -293,6 +313,12 @@ function calcularResultado() {
     try {
         let expresion = inputValue;
 
+        // Validar con parser ANTES de reemplazos
+        const parsed = parseEcuacion(inputValue);
+        if (!parsed.valido) {
+            alert("Error: " + parsed.error);
+            return;
+        }
         // Reemplazos matemáticos
         expresion = expresion.replaceAll("pow(", "Math.pow(");
         expresion = expresion.replaceAll("xylog(", "logxy(");
@@ -360,11 +386,15 @@ function factorial(n) {
     return n * factorial(n - 1);
 }
 
+
+
 function addToHistory(expresion, result) {
     let divItem = document.createElement("div");
     let span = document.createElement("span");
     let button = document.createElement("button");
     span.className = "guardarsiosi";
+    nm = span.textContent = `${expresion}`;
+    res = span.textContent = `${result}`;
 
 
     // Estilos contenedor historial
@@ -373,12 +403,10 @@ function addToHistory(expresion, result) {
     divItem.style.justifyContent = "center";
 
     // Texto del historial
-    span.textContent = `${expresion} = ${result}`;
     span.dataset.userInput = expresion;
     span.style.cursor = "pointer";
     span.style.color = "white";
-    res = span.textContent = `${result}`;
-    nm = span.textContent = `${expresion}`;
+    span.textContent = `${expresion} = ${result}`;
     // Botón eliminar historial
     button.textContent = "Delete";
     button.className = "btn-sm";
