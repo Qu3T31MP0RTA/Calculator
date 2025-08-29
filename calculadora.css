@@ -209,13 +209,13 @@ button {
 }
 
 .basic {
-    display: flex;
+    display: none;
 }
 
 
 
 .scientific {
-    display: none;
+    display: flex;
     align-items: center;
     justify-content: center;
     gap: 5px;
@@ -227,7 +227,7 @@ button {
 
 
 .scientific-moreButtons {
-    display: none;
+    display: flex;
     align-items: center;
     justify-content: center;
     gap: 5px;
