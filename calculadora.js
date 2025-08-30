@@ -6,7 +6,6 @@ var nm;               // Valor actual del input (ecuación)
 var res;              // Resultado calculado de la ecuación
 var memoryContainer;  // Contenedor donde se mostrarán los registros
 var idEnEdicion = null; // Guarda el id del registro que se está editando
-
 // =========================
 // Inicialización al cargar la página
 // =========================
@@ -91,13 +90,14 @@ function MostrarNumero(evento) {
 
     if (puntero) {
         memoryContainer.innerHTML += `
-            <div class="contenido">
-                <strong>Ecuación:</strong> ${puntero.value.ecuacion} <br>
-                <strong>Resultado:</strong> ${puntero.value.resultado} <br>
+                <div class="contenido" data-id="${puntero.value.id}">
+                 <strong>Ecuación:</strong> <div class="ecuacionn">${puntero.value.ecuacion} </div>
+                <strong>Resultado:</strong> <div class="resultadoo">${puntero.value.resultado} </div>
+
                 <div class = "Flex">
                 <button class="borrar" value="Borrar" onclick="eliminarNumero(${puntero.value.id})">Borrar</button>
-                <button class="Mmas">M+</button>
-                <button class="Mmenos">M-</button>
+                <button class="Mmas"  onclick="memoriaMas()">M+</button>
+                <button class="Mmenos" onclick="memoriaMenos()">M-</button>
                 <button class="editarr"  onclick="editarEcuacion(${puntero.value.id})">Editar</button>
                 </div>
 
@@ -154,15 +154,142 @@ function MostrarError(evento) {
 function Comenzar(evento) {
     bd = evento.target.result;
     Mostrar(); // Mostrar registros al iniciar
+    actualizarValorOriginal(); // <--- ahora bd ya existe
+    // =========================
+    // Función para actualizar la memoria M+ o M-
+    // =========================
+    function actualizarMemoria(id, operacion) {
+        if (!bd) return;
+
+        const transaction = bd.transaction(["numero"], "readwrite");
+        const almacen = transaction.objectStore("numero");
+        const solicitud = almacen.get(id);
+
+        solicitud.onsuccess = (event) => {
+            const registro = event.target.result;
+            if (!registro) return;
+
+            // Guardamos el valor original la primera vez
+            if (registro.resultadoOriginal === undefined) {
+                registro.resultadoOriginal = Math.abs(Number(registro.resultado));
+            }
+
+            // Convertimos resultado a número antes de operar
+            let valorActual = Number(registro.resultado);
+
+            // Operación M+ o M-
+            if (operacion === "sumar") {
+                valorActual += registro.resultadoOriginal;
+            } else if (operacion === "restar") {
+                valorActual -= registro.resultadoOriginal;
+            }
+
+            registro.resultado = valorActual;
+
+            const requestUpdate = almacen.put(registro);
+            requestUpdate.onsuccess = () => {
+                const divContenedor = memoryContainer.querySelector(`.contenido[data-id='${id}'] .resultadoo`);
+                if (divContenedor) divContenedor.textContent = registro.resultado;
+            };
+        };
+    }
+
+    // =========================
+    // Escucha de botones M+ y M-
+    // =========================
+    document.addEventListener("click", (e) => {
+        if (e.target.classList.contains("Mmas")) {
+            const id = Number(e.target.closest(".contenido").dataset.id);
+            actualizarMemoria(id, "sumar");
+        }
+        if (e.target.classList.contains("Mmenos")) {
+            const id = Number(e.target.closest(".contenido").dataset.id);
+            actualizarMemoria(id, "restar");
+        }
+    });
+
 }
+// =========================
+// Guardar el valor original de la memoria
+// =========================
+let valorOriginalMemoria = 0;
+let idUltimoResultado = null;
+
+function actualizarValorOriginal() {
+    let transaccion = bd.transaction(["numero"], "readonly");
+    let store = transaccion.objectStore("numero");
+    let request = store.openCursor(null, 'prev'); // Cursor inverso para obtener el último registro
+
+    request.onsuccess = function (event) {
+        let cursor = event.target.result;
+        if (cursor) {
+            valorOriginalMemoria = parseFloat(cursor.value.resultado);
+            idUltimoResultado = cursor.value.id;
+        } else {
+            valorOriginalMemoria = 0;
+            idUltimoResultado = null;
+        }
+    };
+
+    request.onerror = function (event) {
+        console.error("Error al obtener el último resultado", event);
+        valorOriginalMemoria = 0;
+        idUltimoResultado = null;
+    };
+}
+
+// =========================
+// Función global M+
+// =========================
+function memoriaMasGlobal() {
+    if (idUltimoResultado === null) return;
+
+    let transaction = bd.transaction(["numero"], "readwrite");
+    let store = transaction.objectStore("numero");
+
+    // Obtener valor actual de la memoria
+    let getRequest = store.get(idUltimoResultado);
+    getRequest.onsuccess = function () {
+        let registro = getRequest.result;
+        let nuevoValor = parseFloat(registro.resultado) + valorOriginalMemoria;
+        store.put({ id: idUltimoResultado, ecuacion: registro.ecuacion, resultado: nuevoValor });
+
+        transaction.oncomplete = () => {
+            Mostrar(); // Refresca la memoria visual
+        };
+    };
+}
+
+// =========================
+// Función global M-
+// =========================
+function memoriaMenosGlobal() {
+    if (idUltimoResultado === null) return;
+
+    let transaction = bd.transaction(["numero"], "readwrite");
+    let store = transaction.objectStore("numero");
+
+    // Obtener valor actual de la memoria
+    let getRequest = store.get(idUltimoResultado);
+    getRequest.onsuccess = function () {
+        let registro = getRequest.result;
+        let nuevoValor = parseFloat(registro.resultado) - valorOriginalMemoria;
+        store.put({ id: idUltimoResultado, ecuacion: registro.ecuacion, resultado: nuevoValor });
+
+        transaction.oncomplete = () => {
+            Mostrar(); // Refresca la memoria visual
+        };
+    };
+}
+document.querySelector("#globalMPlus").addEventListener("click", memoriaMasGlobal);
+document.querySelector("#globalMMinus").addEventListener("click", memoriaMenosGlobal);
+
+window.addEventListener("load", actualizarValorOriginal);
 
 // =========================
 // Inicializar todo al cargar la página
 // =========================
 window.addEventListener("load", runbd);
-
-
-
 
 
 // =========================
@@ -393,6 +520,8 @@ function addToHistory(expresion, result) {
     let span = document.createElement("span");
     let button = document.createElement("button");
     span.className = "guardarsiosi";
+
+
     nm = span.textContent = `${expresion}`;
     res = span.textContent = `${result}`;
 

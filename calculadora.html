@@ -29,9 +29,9 @@
                                 <div>
                                     <button onclick="eliminarTodo()">MC</button>
                                     <button data-number="MR" class="side-button button">MR</button>
-                                    <button data-number="M+" class="side-button button">M+</button>
-                                    <button data-number="M-" class="side-button button">M-</button>
-                                    <button class="btnGuardar side" >MS</button>
+                                    <button id="globalMPlus">M+</button>
+                                    <button id="globalMMinus">M-</button>
+                                    <button class="btnGuardar side">MS</button>
                                     <button data-number="," class="side-button button">,</button>
 
                                 </div>
@@ -134,9 +134,8 @@
                                 <div id="precionar" class="memoryButton">
                                     <button onclick="eliminarTodo()">MC</button>
                                     <button data-number="MR" class="side-button button">MR</button>
-                                    <button class="mmas side" data-number="M+">M+</button>
-                                    <button data-number="M-" class="side-button button">M-</button>
-                                    <button  onclick="almacenarNumero()">MS</button>
+
+                                    <button onclick="almacenarNumero()">MS</button>
                                 </div>
                                 <button data-number="→deg" class="side-button button">→deg</button>
                                 <button data-number="," class="side-button button">,</button>
