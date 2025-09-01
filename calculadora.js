@@ -216,7 +216,8 @@ let valorOriginalMemoria = 0;
 let idUltimoResultado = null;
 
 function actualizarValorOriginal() {
-    let transaccion = bd.transaction(["numero"], "readonly");
+    var transaccion = bd.transaction(["numero"], "readonly");
+
     let store = transaccion.objectStore("numero");
     let request = store.openCursor(null, 'prev'); // Cursor inverso para obtener el último registro
 
@@ -244,11 +245,11 @@ function actualizarValorOriginal() {
 function memoriaMasGlobal() {
     if (idUltimoResultado === null) return;
 
-    let transaction = bd.transaction(["numero"], "readwrite");
-    let store = transaction.objectStore("numero");
+    var transaction = bd.transaction(["numero"], "readwrite");
+    var store = transaction.objectStore("numero");
 
     // Obtener valor actual de la memoria
-    let getRequest = store.get(idUltimoResultado);
+    var getRequest = store.get(idUltimoResultado);
     getRequest.onsuccess = function () {
         let registro = getRequest.result;
         let nuevoValor = parseFloat(registro.resultado) + valorOriginalMemoria;
@@ -372,7 +373,7 @@ buttons.forEach((button) => {
 });
 function parseEcuacion(input) {
     //  Lista de caracteres permitidos
-    const permitidos = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-*/=^() ";
+    const permitidos = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-*/=^.() ";
 
     //  Verificar que cada carácter sea válido
     for (let i = 0; i < input.length; i++) {
@@ -515,42 +516,84 @@ function factorial(n) {
 
 
 
-function addToHistory(expresion, result) {
-    let divItem = document.createElement("div");
+// =========================
+// Función para añadir al historial (con localStorage)
+// =========================
+function addToHistory(expression, result) {
+    let historyItem = document.createElement("div");
+    historyItem.className = "history-item";
+
     let span = document.createElement("span");
-    let button = document.createElement("button");
-    span.className = "guardarsiosi";
+    span.textContent = `${expression} = ${result}`;
+    historyItem.appendChild(span);
 
-
-    nm = span.textContent = `${expresion}`;
-    res = span.textContent = `${result}`;
-
-
-    // Estilos contenedor historial
-    divItem.className = "historyItem";
-    divItem.style.display = "flex";
-    divItem.style.justifyContent = "center";
-
-    // Texto del historial
-    span.dataset.userInput = expresion;
-    span.style.cursor = "pointer";
-    span.style.color = "white";
-    span.textContent = `${expresion} = ${result}`;
-    // Botón eliminar historial
-    button.textContent = "Delete";
-    button.className = "btn-sm";
-    button.style.color = "white";
-    button.style.background = "red";
-
-    // Eventos
-    button.addEventListener("click", () => divItem.remove());
-    span.addEventListener("click", () => {
-        input.value = span.dataset.userInput;
+    let deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "Eliminar";
+    deleteBtn.className = "delete-history";
+    deleteBtn.addEventListener("click", () => {
+        historyItem.remove();
+        removeFromLocalStorage(expression, result); 
     });
+    historyItem.appendChild(deleteBtn);
 
-    // Agregar al historial
-    divItem.appendChild(span);
-    divItem.appendChild(button);
-    historyContent.appendChild(divItem);
-
+    document.getElementById("historyContent").appendChild(historyItem);
+    saveToLocalStorage(expression, result);
 }
+
+// =========================
+// Guardar en localStorage
+// =========================
+function saveToLocalStorage(expression, result) {
+    let history = JSON.parse(localStorage.getItem("historial")) || [];
+    history.push({ expression, result });
+    localStorage.setItem("historial", JSON.stringify(history));
+}
+
+// =========================
+// Cargar historial desde localStorage
+// =========================
+function loadHistory() {
+    let history = JSON.parse(localStorage.getItem("historial")) || [];
+    history.forEach(item => {
+        addHistoryFromStorage(item.expression, item.result);
+    });
+}
+
+// =========================
+// Añadir historial desde localStorage
+// =========================
+function addHistoryFromStorage(expression, result) {
+    let historyItem = document.createElement("div");
+    historyItem.className = "history-item";
+
+    let span = document.createElement("span");
+    span.textContent = `${expression} = ${result}`;
+    historyItem.appendChild(span);
+
+    let deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "Eliminar";
+    deleteBtn.className = "delete-history";
+    deleteBtn.addEventListener("click", () => {
+        historyItem.remove();
+        removeFromLocalStorage(expression, result);
+    });
+    historyItem.appendChild(deleteBtn);
+
+    document.getElementById("historyContent").appendChild(historyItem);
+}
+
+// =========================
+// Eliminar de localStorage
+// =========================
+function removeFromLocalStorage(expression, result) {
+    let history = JSON.parse(localStorage.getItem("historial")) || [];
+    history = history.filter(item => !(item.expression === expression && item.result === result));
+    localStorage.setItem("historial", JSON.stringify(history));
+}
+
+// =========================
+// Reconstruir historial al cargar
+// =========================
+window.addEventListener("load", () => {
+    loadHistory();
+});
