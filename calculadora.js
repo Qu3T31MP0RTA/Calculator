@@ -24,6 +24,34 @@ function runbd() {
 }
 
 // =========================
+// recuperar memoria
+// =========================
+function restoreMemory() {
+    var transaccion = bd.transaction(["numero"]);
+    var almacen = transaccion.objectStore("numero");
+    var request = almacen.openCursor(null, "prev")
+
+    request.onsuccess = function (event) {
+        var cursor = event.target.result;
+        if (cursor) {
+            var ultima = cursor.value;
+            document.querySelector("input").value = ultima.ecuacion;
+            console.log("Memoria recuperada:", ultima.resultado, "de ecuación:", ultima.ecuacion);
+        } else {
+            console.log("No hay memoria en IndexedDB");
+        }
+    }
+    request.onerror = function (event) {
+        console.error("Error al recuperar memoria:", event);
+    };
+
+
+}
+document.querySelector("#btnRecuperarMemoria").addEventListener("click", restoreMemory);
+
+
+
+// =========================
 // Crear almacen de datos
 // =========================
 function Crearalmacen(evento) {
@@ -119,10 +147,10 @@ function editarEcuacion(id) {
         let resultado = solicitud.result;
 
         if (resultado) {
-            idEnEdicion = id; // Guardamos el id del registro en edición
-            document.querySelector("#input").value = resultado.ecuacion; // Mostramos ecuación
-            nm = resultado.ecuacion; // Actualizamos variable nm
-            res = resultado.resultado; // Actualizamos variable res
+            idEnEdicion = id; 
+            document.querySelector("#input").value = resultado.ecuacion; 
+            nm = resultado.ecuacion; 
+            res = resultado.resultado;
         }
     });
 }
@@ -524,20 +552,23 @@ function addToHistory(expression, result) {
     historyItem.className = "history-item";
 
     let span = document.createElement("span");
-    span.textContent = `${expression} = ${result}`;
+    res = `${result}`;
+    nm = `${expression}`;
+    span.textContent = `${expression} = ${res}`;
     historyItem.appendChild(span);
-
     let deleteBtn = document.createElement("button");
     deleteBtn.textContent = "Eliminar";
     deleteBtn.className = "delete-history";
     deleteBtn.addEventListener("click", () => {
         historyItem.remove();
-        removeFromLocalStorage(expression, result); 
+        removeFromLocalStorage(nm, res); // usa tus mismas variables
     });
     historyItem.appendChild(deleteBtn);
 
     document.getElementById("historyContent").appendChild(historyItem);
-    saveToLocalStorage(expression, result);
+
+    // --- añadido sin tocar tu lógica ---
+    saveToLocalStorage(nm, res);
 }
 
 // =========================
@@ -567,7 +598,11 @@ function addHistoryFromStorage(expression, result) {
     historyItem.className = "history-item";
 
     let span = document.createElement("span");
-    span.textContent = `${expression} = ${result}`;
+
+    res = `${result}`;
+    nm = `${expression}`;
+    span.textContent = `${nm} = ${res}`;
+    // ⬅️ respetando tu lógica también aquí
     historyItem.appendChild(span);
 
     let deleteBtn = document.createElement("button");
@@ -575,7 +610,7 @@ function addHistoryFromStorage(expression, result) {
     deleteBtn.className = "delete-history";
     deleteBtn.addEventListener("click", () => {
         historyItem.remove();
-        removeFromLocalStorage(expression, result);
+        removeFromLocalStorage(nm, res);
     });
     historyItem.appendChild(deleteBtn);
 
