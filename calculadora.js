@@ -35,7 +35,7 @@ function restoreMemory() {
         var cursor = event.target.result;
         if (cursor) {
             var ultima = cursor.value;
-            document.querySelector("input").value = ultima.ecuacion;
+            document.querySelector("input").value = ultima.resultado;
             console.log("Memoria recuperada:", ultima.resultado, "de ecuación:", ultima.ecuacion);
         } else {
             console.log("No hay memoria en IndexedDB");
@@ -147,9 +147,9 @@ function editarEcuacion(id) {
         let resultado = solicitud.result;
 
         if (resultado) {
-            idEnEdicion = id; 
-            document.querySelector("#input").value = resultado.ecuacion; 
-            nm = resultado.ecuacion; 
+            idEnEdicion = id;
+            document.querySelector("#input").value = resultado.ecuacion;
+            nm = resultado.ecuacion;
             res = resultado.resultado;
         }
     });
@@ -207,11 +207,10 @@ function Comenzar(evento) {
 
             // Operación M+ o M-
             if (operacion === "sumar") {
-                valorActual += registro.resultadoOriginal;
+                valorActual += Number(document.querySelector("input").value);
             } else if (operacion === "restar") {
-                valorActual -= registro.resultadoOriginal;
+                valorActual -= Number(document.querySelector("input").value);
             }
-
             registro.resultado = valorActual;
 
             const requestUpdate = almacen.put(registro);
@@ -280,7 +279,7 @@ function memoriaMasGlobal() {
     var getRequest = store.get(idUltimoResultado);
     getRequest.onsuccess = function () {
         let registro = getRequest.result;
-        let nuevoValor = parseFloat(registro.resultado) + valorOriginalMemoria;
+        let nuevoValor = parseFloat(registro.resultado) + Number(document.querySelector("input").value);
         store.put({ id: idUltimoResultado, ecuacion: registro.ecuacion, resultado: nuevoValor });
 
         transaction.oncomplete = () => {
@@ -302,7 +301,7 @@ function memoriaMenosGlobal() {
     let getRequest = store.get(idUltimoResultado);
     getRequest.onsuccess = function () {
         let registro = getRequest.result;
-        let nuevoValor = parseFloat(registro.resultado) - valorOriginalMemoria;
+        let nuevoValor = parseFloat(registro.resultado) - Number(document.querySelector("input").value);
         store.put({ id: idUltimoResultado, ecuacion: registro.ecuacion, resultado: nuevoValor });
 
         transaction.oncomplete = () => {

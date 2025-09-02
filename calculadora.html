@@ -28,7 +28,7 @@
                             <div class="basic-memory">
                                 <div>
                                     <button onclick="eliminarTodo()">MC</button>
-                                    <button data-number="MR" class="side-button button">MR</button>
+                                    <button id="btnRecuperarMemoria">MR</button>
                                     <button id="globalMPlus">M+</button>
                                     <button id="globalMMinus">M-</button>
                                     <button class="btnGuardar side">MS</button>
@@ -133,8 +133,9 @@
                                 <button class="side-button" id="clickk" onclick="">Memory</button>
                                 <div id="precionar" class="memoryButton">
                                     <button onclick="eliminarTodo()">MC</button>
-                                    <button data-number="MR" class="side-button button">MR</button>
-
+                                    <button onclick="restoreMemory()">MR</button>
+                                    <button onclick="memoriaMasGlobal()">M+</button>
+                                    <button onclick="memoriaMenosGlobal()">M-</button>
                                     <button onclick="almacenarNumero()">MS</button>
                                 </div>
                                 <button data-number="→deg" class="side-button button">→deg</button>
