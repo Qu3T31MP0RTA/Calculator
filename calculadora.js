@@ -560,13 +560,16 @@ function addToHistory(expression, result) {
     deleteBtn.className = "delete-history";
     deleteBtn.addEventListener("click", () => {
         historyItem.remove();
-        removeFromLocalStorage(nm, res); // usa tus mismas variables
+        removeFromLocalStorage(nm, res);
+    });
+    deleteBtn.addEventListener("click", () => {
+        historyItem.remove();
+        removeFromLocalStorage(expression, result);
     });
     historyItem.appendChild(deleteBtn);
 
     document.getElementById("historyContent").appendChild(historyItem);
 
-    // --- añadido sin tocar tu lógica ---
     saveToLocalStorage(nm, res);
 }
 
@@ -601,7 +604,6 @@ function addHistoryFromStorage(expression, result) {
     res = `${result}`;
     nm = `${expression}`;
     span.textContent = `${nm} = ${res}`;
-    // ⬅️ respetando tu lógica también aquí
     historyItem.appendChild(span);
 
     let deleteBtn = document.createElement("button");
