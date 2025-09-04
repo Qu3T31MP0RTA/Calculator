@@ -6,7 +6,6 @@ body {
     margin: 0;
     font-family: "Roboto Mono", monospace;
     background-color: #dadff7;
-    position: fixed;
     /* Evita que la página se mueva */
 }
 
@@ -14,6 +13,7 @@ body {
    2. Contenedor principal
    ===================== */
 .calculator {
+    position: fixed;
     width: 100%;
     height: 40rem;
     display: grid;
@@ -149,6 +149,16 @@ button {
 
 
 }
+.scroll1 {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    max-height: 350px;
+    max-width: 500px;
+    overflow-y: auto;
+
+
+}
 
 .history-item {
     color: white;
@@ -170,10 +180,21 @@ button {
 }
 
 .contenido {
-    margin-top: 10px;
     margin-left: 10px;
 
     color: white;
+}
+.Flex-space{
+    display: flex;
+}
+#Memory {
+    display: flex;
+    justify-content: space-around;
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    width: 95%;
+    height: 600px;
+    margin-left: 10px;
 }
 
 #historyContent {

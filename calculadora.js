@@ -119,9 +119,12 @@ function MostrarNumero(evento) {
     if (puntero) {
         memoryContainer.innerHTML += `
                 <div class="contenido" data-id="${puntero.value.id}">
+                <div class = "Flex-space">
                  <strong>Ecuación:</strong> <div class="ecuacionn">${puntero.value.ecuacion} </div>
+                  </div>
+                  <div class = "Flex-space">
                 <strong>Resultado:</strong> <div class="resultadoo">${puntero.value.resultado} </div>
-
+                </div>
                 <div class = "Flex">
                 <button class="borrar" value="Borrar" onclick="eliminarNumero(${puntero.value.id})">Borrar</button>
                 <button class="Mmas"  onclick="memoriaMas()">M+</button>
@@ -526,7 +529,7 @@ function calcularResultado() {
         // Mostrar correctamente si es string (DMS) o número
         input.value = typeof result === "string" ? result : (Number.isInteger(result) ? result : result.toFixed(2));
 
-       agregarId(inputValue, input.value);
+        agregarId(inputValue, input.value);
 
 
     } catch (error) {
@@ -547,7 +550,7 @@ function factorial(n) {
 // =========================
 // Función para añadir al historial (con localStorage)
 // =========================
-function addToHistory(id, expression, result) {
+function addToHistory(idi, expression, result) {
     let historyItem = document.createElement("div");
     historyItem.className = "history-item";
 
@@ -557,13 +560,13 @@ function addToHistory(id, expression, result) {
     span.textContent = `${expression} = ${res}`;
     historyItem.appendChild(span);
 
-    historyItem.dataset.id = id;
+    historyItem.dataset.idi = idi;
 
     let deleteBtn = document.createElement("button");
     deleteBtn.textContent = "Eliminar";
     deleteBtn.className = "delete-history";
     deleteBtn.addEventListener("click", () => {
-        removeFromLocalStorage(Number(historyItem.dataset.id));
+        removeFromLocalStorage(Number(historyItem.dataset.idi));
         historyItem.remove();
     });
 
@@ -576,15 +579,15 @@ function addToHistory(id, expression, result) {
 
     historyItem.appendChild(deleteBtn);
     document.getElementById("historyContent").appendChild(historyItem);
-    saveToLocalStorage(id, expression, result);
+    saveToLocalStorage(idi, expression, result);
 }
 
 // =========================
 // Guardar en localStorage
 // =========================
-function saveToLocalStorage(id, expression, result) {
+function saveToLocalStorage(idi, expression, result) {
     let history = JSON.parse(localStorage.getItem("historial")) || [];
-    history.push({ id, expression, result });
+    history.push({ idi, expression, result });
     localStorage.setItem("historial", JSON.stringify(history));
 }
 
@@ -594,14 +597,14 @@ function saveToLocalStorage(id, expression, result) {
 function loadHistory() {
     let history = JSON.parse(localStorage.getItem("historial")) || [];
     history.forEach(item => {
-        addHistoryFromStorage(item.id, item.expression, item.result);
+        addHistoryFromStorage(item.idi, item.expression, item.result);
     });
 }
 
 // =========================
 // Añadir historial desde localStorage
 // =========================
-function addHistoryFromStorage(id, expression, result) {
+function addHistoryFromStorage(idi, expression, result) {
     let historyItem = document.createElement("div");
     historyItem.className = "history-item";
 
@@ -615,9 +618,9 @@ function addHistoryFromStorage(id, expression, result) {
     let deleteBtn = document.createElement("button");
     deleteBtn.textContent = "Eliminar";
     deleteBtn.className = "delete-history";
-    historyItem.dataset.id = id;
+    historyItem.dataset.idi = idi;
     deleteBtn.addEventListener("click", () => {
-        removeFromLocalStorage(Number(historyItem.dataset.id));
+        removeFromLocalStorage(Number(historyItem.dataset.idi));
         historyItem.remove();
     });
     historyItem.appendChild(deleteBtn);
@@ -634,9 +637,9 @@ function addHistoryFromStorage(id, expression, result) {
 // =========================
 // Eliminar de localStorage
 // =========================
-function removeFromLocalStorage(id) {
+function removeFromLocalStorage(idi) {
     var history = JSON.parse(localStorage.getItem("historial")) || [];
-    history = history.filter(item => item.id !== id);
+    history = history.filter(item => item.idi !== idi);
     localStorage.setItem("historial", JSON.stringify(history));
 }
 
@@ -648,6 +651,6 @@ window.addEventListener("load", () => {
 });
 // ya me dio pereza comentar
 function agregarId(expression, result) {
-    var id = Date.now() + Math.random();
-    addToHistory(id, expression, result)
+    var idi = Date.now() + Math.random();
+    addToHistory(idi, expression, result)
 }
