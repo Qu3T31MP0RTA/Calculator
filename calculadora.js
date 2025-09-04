@@ -400,7 +400,7 @@ buttons.forEach((button) => {
 });
 function parseEcuacion(input) {
     //  Lista de caracteres permitidos
-    const permitidos = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-*/=^.() ";
+    const permitidos = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-*/=^.,→() ";
 
     //  Verificar que cada carácter sea válido
     for (let i = 0; i < input.length; i++) {
@@ -526,7 +526,8 @@ function calcularResultado() {
         // Mostrar correctamente si es string (DMS) o número
         input.value = typeof result === "string" ? result : (Number.isInteger(result) ? result : result.toFixed(2));
 
-        addToHistory(inputValue, input.value);
+       agregarId(inputValue, input.value);
+
 
     } catch (error) {
         alert("Error: " + error.message);
@@ -546,7 +547,7 @@ function factorial(n) {
 // =========================
 // Función para añadir al historial (con localStorage)
 // =========================
-function addToHistory(expression, result) {
+function addToHistory(id, expression, result) {
     let historyItem = document.createElement("div");
     historyItem.className = "history-item";
 
@@ -555,30 +556,35 @@ function addToHistory(expression, result) {
     nm = `${expression}`;
     span.textContent = `${expression} = ${res}`;
     historyItem.appendChild(span);
+
+    historyItem.dataset.id = id;
+
     let deleteBtn = document.createElement("button");
     deleteBtn.textContent = "Eliminar";
     deleteBtn.className = "delete-history";
     deleteBtn.addEventListener("click", () => {
+        removeFromLocalStorage(Number(historyItem.dataset.id));
         historyItem.remove();
-        removeFromLocalStorage(nm, res);
     });
-    deleteBtn.addEventListener("click", () => {
-        historyItem.remove();
-        removeFromLocalStorage(expression, result);
+
+    span.style.cursor = "pointer";
+    span.dataset.userInput = expression;
+    span.dataset.userResult = result;
+    span.addEventListener("click", () => {
+        input.value = span.dataset.userInput;
     });
+
     historyItem.appendChild(deleteBtn);
-
     document.getElementById("historyContent").appendChild(historyItem);
-
-    saveToLocalStorage(nm, res);
+    saveToLocalStorage(id, expression, result);
 }
 
 // =========================
 // Guardar en localStorage
 // =========================
-function saveToLocalStorage(expression, result) {
+function saveToLocalStorage(id, expression, result) {
     let history = JSON.parse(localStorage.getItem("historial")) || [];
-    history.push({ expression, result });
+    history.push({ id, expression, result });
     localStorage.setItem("historial", JSON.stringify(history));
 }
 
@@ -588,14 +594,14 @@ function saveToLocalStorage(expression, result) {
 function loadHistory() {
     let history = JSON.parse(localStorage.getItem("historial")) || [];
     history.forEach(item => {
-        addHistoryFromStorage(item.expression, item.result);
+        addHistoryFromStorage(item.id, item.expression, item.result);
     });
 }
 
 // =========================
 // Añadir historial desde localStorage
 // =========================
-function addHistoryFromStorage(expression, result) {
+function addHistoryFromStorage(id, expression, result) {
     let historyItem = document.createElement("div");
     historyItem.className = "history-item";
 
@@ -603,17 +609,24 @@ function addHistoryFromStorage(expression, result) {
 
     res = `${result}`;
     nm = `${expression}`;
-    span.textContent = `${nm} = ${res}`;
+    span.textContent = `${expression} = ${result}`;
     historyItem.appendChild(span);
 
     let deleteBtn = document.createElement("button");
     deleteBtn.textContent = "Eliminar";
     deleteBtn.className = "delete-history";
+    historyItem.dataset.id = id;
     deleteBtn.addEventListener("click", () => {
+        removeFromLocalStorage(Number(historyItem.dataset.id));
         historyItem.remove();
-        removeFromLocalStorage(nm, res);
     });
     historyItem.appendChild(deleteBtn);
+    span.addEventListener("click", () => {
+        input.value = span.dataset.userInput;
+    });
+    span.style.cursor = "pointer";
+    span.dataset.userInput = expression;
+    span.dataset.userResult = result;
 
     document.getElementById("historyContent").appendChild(historyItem);
 }
@@ -621,9 +634,9 @@ function addHistoryFromStorage(expression, result) {
 // =========================
 // Eliminar de localStorage
 // =========================
-function removeFromLocalStorage(expression, result) {
-    let history = JSON.parse(localStorage.getItem("historial")) || [];
-    history = history.filter(item => !(item.expression === expression && item.result === result));
+function removeFromLocalStorage(id) {
+    var history = JSON.parse(localStorage.getItem("historial")) || [];
+    history = history.filter(item => item.id !== id);
     localStorage.setItem("historial", JSON.stringify(history));
 }
 
@@ -633,3 +646,8 @@ function removeFromLocalStorage(expression, result) {
 window.addEventListener("load", () => {
     loadHistory();
 });
+// ya me dio pereza comentar
+function agregarId(expression, result) {
+    var id = Date.now() + Math.random();
+    addToHistory(id, expression, result)
+}
