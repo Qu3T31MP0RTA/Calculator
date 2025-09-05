@@ -654,3 +654,21 @@ function agregarId(expression, result) {
     var idi = Date.now() + Math.random();
     addToHistory(idi, expression, result)
 }
+var estado = 0;
+document.getElementById("multiBtn").addEventListener("click", () => {
+    switch (estado) {
+        case 0:
+            document.getElementById("multiBtn").textContent = "GRAD";
+            estado = 1;
+            break;
+        case 1:
+            document.getElementById("multiBtn").textContent = "DEG";
+            estado = 2;
+            break;
+        case 2:
+            document.getElementById("multiBtn").textContent = "RAD";
+            estado = 0;
+            break;
+
+    }
+});
