@@ -1,23 +1,23 @@
 // =========================
-// Variables principales
+// letiables principales
 // =========================
-var bd;               // Base de datos
-var nm;               // Valor actual del input (ecuación)
-var res;              // Resultado calculado de la ecuación
-var memoryContainer;  // Contenedor donde se mostrarán los registros
-var idEnEdicion = null; // Guarda el id del registro que se está editando
+let bd;               // Base de datos
+let nm;               // Valor actual del input (ecuación)
+let res;              // Resultado calculado de la ecuación
+let memoryContainer;  // Contenedor donde se mostrarán los registros
+let idEnEdicion = null; // Guarda el id del registro que se está editando
 // =========================
 // Inicialización al cargar la página
 // =========================
 function runbd() {
     memoryContainer = document.querySelector("#Memory");
-    var btnGuardar = document.querySelector(".btnGuardar");
+    let btnGuardar = document.querySelector(".btnGuardar");
 
     // Asociar evento click al botón Guardar
     btnGuardar.addEventListener("click", almacenarNumero);
 
     // Abrir base de datos IndexedDB
-    var solicitud = indexedDB.open("Resultado-y-operaciones");
+    let solicitud = indexedDB.open("Resultado-y-operaciones");
     solicitud.addEventListener("error", MostrarError);       // Manejo de errores
     solicitud.addEventListener("success", Comenzar);         // Conexión exitosa
     solicitud.addEventListener("upgradeneeded", Crearalmacen); // Crear almacen si no existe
@@ -27,14 +27,14 @@ function runbd() {
 // recuperar memoria
 // =========================
 function restoreMemory() {
-    var transaccion = bd.transaction(["numero"]);
-    var almacen = transaccion.objectStore("numero");
-    var request = almacen.openCursor(null, "prev")
+    let transaccion = bd.transaction(["numero"]);
+    let almacen = transaccion.objectStore("numero");
+    let request = almacen.openCursor(null, "prev")
 
     request.onsuccess = function (event) {
-        var cursor = event.target.result;
+        let cursor = event.target.result;
         if (cursor) {
-            var ultima = cursor.value;
+            let ultima = cursor.value;
             document.querySelector("input").value = ultima.resultado;
             console.log("Memoria recuperada:", ultima.resultado, "de ecuación:", ultima.ecuacion);
         } else {
@@ -55,10 +55,10 @@ document.querySelector("#btnRecuperarMemoria").addEventListener("click", restore
 // Crear almacen de datos
 // =========================
 function Crearalmacen(evento) {
-    var baseDatos = evento.target.result;
+    let baseDatos = evento.target.result;
 
     // Creamos un objectStore llamado "numero" con clave primaria autoincremental
-    var almacen = baseDatos.createObjectStore("numero", { keyPath: "id", autoIncrement: true });
+    let almacen = baseDatos.createObjectStore("numero", { keyPath: "id", autoIncrement: true });
 
     // Creamos índices para poder buscar por ecuación o resultado si se desea
     almacen.createIndex("ecuacion", "ecuacion", { unique: false });
@@ -76,8 +76,8 @@ function almacenarNumero() {
     }
 
     // Iniciamos transacción en modo lectura/escritura
-    var transaction = bd.transaction(["numero"], "readwrite");
-    var almacen = transaction.objectStore("numero");
+    let transaction = bd.transaction(["numero"], "readwrite");
+    let almacen = transaction.objectStore("numero");
 
     if (idEnEdicion !== null) {
         // Si estamos editando, actualizamos el registro existente
@@ -91,7 +91,7 @@ function almacenarNumero() {
     // Cuando la transacción se completa, mostramos los registros actualizados
     transaction.addEventListener("complete", Mostrar);
 
-    // Limpiamos input y variables
+    // Limpiamos input y letiables
     document.querySelector("#input").value = "";
     nm = "";
     res = "";
@@ -103,9 +103,9 @@ function almacenarNumero() {
 function Mostrar() {
     memoryContainer.innerHTML = "";
 
-    var transaccion = bd.transaction(["numero"]);
-    var almacen = transaccion.objectStore("numero");
-    var puntero = almacen.openCursor();
+    let transaccion = bd.transaction(["numero"]);
+    let almacen = transaccion.objectStore("numero");
+    let puntero = almacen.openCursor();
 
     puntero.addEventListener("success", MostrarNumero);
 }
@@ -114,7 +114,7 @@ function Mostrar() {
 // Mostrar cada registro individual con botón para editar
 // =========================
 function MostrarNumero(evento) {
-    var puntero = evento.target.result;
+    let puntero = evento.target.result;
 
     if (puntero) {
         memoryContainer.innerHTML += `
@@ -142,9 +142,9 @@ function MostrarNumero(evento) {
 // Cargar registro en el input para editarlo
 // =========================
 function editarEcuacion(id) {
-    var transaccion = bd.transaction(["numero"], "readonly");
-    var almacen = transaccion.objectStore("numero");
-    var solicitud = almacen.get(id);
+    let transaccion = bd.transaction(["numero"], "readonly");
+    let almacen = transaccion.objectStore("numero");
+    let solicitud = almacen.get(id);
 
     solicitud.addEventListener("success", function () {
         let resultado = solicitud.result;
@@ -162,15 +162,15 @@ function editarEcuacion(id) {
 // botone de eliminar
 // =========================
 function eliminarNumero(key) {
-    var transaccion = bd.transaction(["numero"], "readwrite");
-    var almacen = transaccion.objectStore("numero");
-    var solicitud = almacen.delete(key);
+    let transaccion = bd.transaction(["numero"], "readwrite");
+    let almacen = transaccion.objectStore("numero");
+    let solicitud = almacen.delete(key);
     transaccion.addEventListener("complete", Mostrar);
 }
 function eliminarTodo() {
-    var transaccion = bd.transaction(["numero"], "readwrite");
-    var almacen = transaccion.objectStore("numero");
-    var solicitud = almacen.clear();
+    let transaccion = bd.transaction(["numero"], "readwrite");
+    let almacen = transaccion.objectStore("numero");
+    let solicitud = almacen.clear();
     transaccion.addEventListener("complete", Mostrar);
 }
 // =========================
@@ -246,7 +246,7 @@ let valorOriginalMemoria = 0;
 let idUltimoResultado = null;
 
 function actualizarValorOriginal() {
-    var transaccion = bd.transaction(["numero"], "readonly");
+    let transaccion = bd.transaction(["numero"], "readonly");
 
     let store = transaccion.objectStore("numero");
     let request = store.openCursor(null, 'prev'); // Cursor inverso para obtener el último registro
@@ -275,11 +275,11 @@ function actualizarValorOriginal() {
 function memoriaMasGlobal() {
     if (idUltimoResultado === null) return;
 
-    var transaction = bd.transaction(["numero"], "readwrite");
-    var store = transaction.objectStore("numero");
+    let transaction = bd.transaction(["numero"], "readwrite");
+    let store = transaction.objectStore("numero");
 
     // Obtener valor actual de la memoria
-    var getRequest = store.get(idUltimoResultado);
+    let getRequest = store.get(idUltimoResultado);
     getRequest.onsuccess = function () {
         let registro = getRequest.result;
         let nuevoValor = parseFloat(registro.resultado) + Number(document.querySelector("input").value);
@@ -324,7 +324,7 @@ window.addEventListener("load", runbd);
 
 
 // =========================
-// 1. Variables principales
+// 1. letiables principales
 // =========================
 
 let equalPressed = 0;
@@ -523,6 +523,7 @@ function calcularResultado() {
             .replaceAll("⌊x⌋(", "Math.floor(")
             .replaceAll("⌈x⌉(", "Math.ceil(")
             .replaceAll(/(\d+)!/g, (_, num) => factorial(Number(num)));
+        expresion = transformarArgumentosTrigo(expresion);
 
         let result = eval(expresion);
         console.log(expresion)
@@ -638,7 +639,7 @@ function addHistoryFromStorage(idi, expression, result) {
 // Eliminar de localStorage
 // =========================
 function removeFromLocalStorage(idi) {
-    var history = JSON.parse(localStorage.getItem("historial")) || [];
+    let history = JSON.parse(localStorage.getItem("historial")) || [];
     history = history.filter(item => item.idi !== idi);
     localStorage.setItem("historial", JSON.stringify(history));
 }
@@ -651,10 +652,10 @@ window.addEventListener("load", () => {
 });
 // ya me dio pereza comentar
 function agregarId(expression, result) {
-    var idi = Date.now() + Math.random();
+    let idi = Date.now() + Math.random();
     addToHistory(idi, expression, result)
 }
-var estado = 0;
+let estado = 0;
 document.getElementById("multiBtn").addEventListener("click", () => {
     switch (estado) {
         case 0:
@@ -672,3 +673,30 @@ document.getElementById("multiBtn").addEventListener("click", () => {
 
     }
 });
+function obtenerModoAngulo() {
+    const texto = document.getElementById("multiBtn").textContent;
+    return texto; // DEG RAD GRAD
+}
+function transformarArgumentosTrigo(expresion) {
+    const modo = obtenerModoAngulo();
+
+    return expresion.replace(/\b(sin|cos|tan|sec|csc|cot|asin|acos|atan|asec|acsc|acot)\s*\(([^)]+)\)/g,
+        (match, func, arg) => {
+            let nuevoArg = arg;
+
+            // Para funciones trigonométricas normales (sin, cos, tan...)
+            if (!func.startsWith("a")) {
+                if (modo === "DEG") nuevoArg = `(${arg})*Math.PI/180`;
+                if (modo === "GRAD") nuevoArg = `(${arg})*Math.PI/200`;
+            }
+
+            // Para funciones inversas (asin, acos, atan...)
+            let conversionResultado = "";
+            if (func.startsWith("a")) {
+                if (modo === "DEG") conversionResultado = `*180/Math.PI`;
+                if (modo === "GRAD") conversionResultado = `*200/Math.PI`;
+            }
+
+            return `${func}(${nuevoArg})${conversionResultado}`;
+        });
+}
