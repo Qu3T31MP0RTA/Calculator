@@ -461,7 +461,9 @@ function DEG(g, m, s) {
 function mod(a, b) {
     return ((a % b) + b) % b;
 }
-
+function EXPT(a, b) {
+    return a * Math.pow(10, b);
+}
 // =========================
 // 4. Calcular expresión
 // =========================
@@ -514,10 +516,10 @@ function calcularResultado() {
             .replaceAll("²√x", "Math.sqrt")
             .replaceAll("∛x", "Math.cbrt")
             .replaceAll("yroot(", "Math.pow(")
-            .replaceAll("exp(", "Math.exp(")
+            .replaceAll("exp(", "EXPT(")
             .replaceAll("ln(", "Math.log(")
             .replaceAll("log(", "Math.log10(")
-            .replaceAll("e^", "Math.exp(")
+            .replaceAll("e^(", "Math.exp(")
             .replaceAll("10^", "10**")
             .replaceAll("|x|(", "Math.abs(")
             .replaceAll("⌊x⌋(", "Math.floor(")
@@ -700,3 +702,10 @@ function transformarArgumentosTrigo(expresion) {
             return `${func}(${nuevoArg})${conversionResultado}`;
         });
 }
+const btnFe = document.querySelector("#fBtn");
+let active = false;
+
+btnFe.addEventListener("click", () => {
+    active = !active;
+    console.log("F-E activado:", active);
+});
