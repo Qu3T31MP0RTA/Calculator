@@ -163,6 +163,16 @@ button {
 
 }
 
+.scroll1::-webkit-scrollbar {
+    display: none;
+
+}
+
+.scroll::-webkit-scrollbar {
+    display: none;
+
+}
+
 .history-item {
     color: white;
     width: 95%;
@@ -266,7 +276,16 @@ button {
     background-color: #2a2a2a;
 }
 
+
 .side-button:hover {
+    background-color: #2a2a2aa8;
+}
+
+.memoryB {
+    background-color: #2a2a2a;
+}
+
+.memoryB:hover {
     background-color: #2a2a2aa8;
 }
 
