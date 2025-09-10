@@ -1,3 +1,4 @@
+// calculadora.js
 // Variables principales
 let equalPressed = 0; // Bandera: indica si se presionó "="
 
@@ -10,7 +11,7 @@ const historyContent = document.getElementById("historyContent"); // Historial
 
 // Botón de mostrar/ocultar memoria
 const bmore = document.querySelector("#clickk");
-const mMore = document.querySelector("#precionar");
+const mMore = document.querySelector("#presionar");
 
 // Toggle para mostrar/ocultar la memoria
 bmore.addEventListener("click", () => {
@@ -151,8 +152,9 @@ function calcularResultado() {
         // Ajustar argumentos trigonométricos
         expresion = transformarArgumentosTrigo(expresion);
 
-        // Evaluar la expresión final
-        const result = eval(expresion);
+        // Evaluar la expresión final 
+        const result = Function('"use strict"; return('+ expresion + ')')();
+
         console.log("Expresión evaluada:", expresion);
 
         // Mostrar resultado
