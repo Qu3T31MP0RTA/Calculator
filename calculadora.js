@@ -1,492 +1,114 @@
-// =========================
-// letiables principales
-// =========================
-let bd;               // Base de datos
-let nm;               // Valor actual del input (ecuación)
-let res;              // Resultado calculado de la ecuación
-let memoryContainer;  // Contenedor donde se mostrarán los registros
-let idEnEdicion = null; // Guarda el id del registro que se está editando
-// =========================
-// Inicialización al cargar la página
-// =========================
-function runbd() {
-    memoryContainer = document.querySelector("#Memory");
-    let btnGuardar = document.querySelector(".btnGuardar");
+// Variables principales
+let equalPressed = 0; // Bandera: indica si se presionó "="
 
-    // Asociar evento click al botón Guardar
-    btnGuardar.addEventListener("click", almacenarNumero);
+const buttons = document.querySelectorAll(".button"); // Todos los botones
+const input = document.getElementById("input");       // Pantalla principal
+const equal = document.getElementById("equal");       // Botón "="
+const clear = document.getElementById("clear");       // Botón "AC"
+const erase = document.getElementById("erase");       // Botón "DEL"
+const historyContent = document.getElementById("historyContent"); // Historial
 
-    // Abrir base de datos IndexedDB
-    let solicitud = indexedDB.open("Resultado-y-operaciones");
-    solicitud.addEventListener("error", MostrarError);       // Manejo de errores
-    solicitud.addEventListener("success", Comenzar);         // Conexión exitosa
-    solicitud.addEventListener("upgradeneeded", Crearalmacen); // Crear almacen si no existe
-}
-
-// =========================
-// recuperar memoria
-// =========================
-function restoreMemory() {
-    let transaccion = bd.transaction(["numero"]);
-    let almacen = transaccion.objectStore("numero");
-    let request = almacen.openCursor(null, "prev")
-
-    request.onsuccess = function (event) {
-        let cursor = event.target.result;
-        if (cursor) {
-            let ultima = cursor.value;
-            document.querySelector("input").value = ultima.resultado;
-            console.log("Memoria recuperada:", ultima.resultado, "de ecuación:", ultima.ecuacion);
-        } else {
-            console.log("No hay memoria en IndexedDB");
-        }
-    }
-    request.onerror = function (event) {
-        console.error("Error al recuperar memoria:", event);
-    };
-
-
-}
-document.querySelector("#btnRecuperarMemoria").addEventListener("click", restoreMemory);
-
-
-
-// =========================
-// Crear almacen de datos
-// =========================
-function Crearalmacen(evento) {
-    let baseDatos = evento.target.result;
-
-    // Creamos un objectStore llamado "numero" con clave primaria autoincremental
-    let almacen = baseDatos.createObjectStore("numero", { keyPath: "id", autoIncrement: true });
-
-    // Creamos índices para poder buscar por ecuación o resultado si se desea
-    almacen.createIndex("ecuacion", "ecuacion", { unique: false });
-    almacen.createIndex("resultado", "resultado", { unique: false });
-}
-
-// =========================
-// Guardar o actualizar un registro
-// =========================
-function almacenarNumero() {
-    // Validación: no guardar ecuación vacía
-    if (!nm || nm.trim() === "") {
-        alert("No puedes guardar una ecuación vacía.");
-        return;
-    }
-
-    // Iniciamos transacción en modo lectura/escritura
-    let transaction = bd.transaction(["numero"], "readwrite");
-    let almacen = transaction.objectStore("numero");
-
-    if (idEnEdicion !== null) {
-        // Si estamos editando, actualizamos el registro existente
-        almacen.put({ id: idEnEdicion, ecuacion: nm, resultado: res });
-        idEnEdicion = null; // Reseteamos la edición
-    } else {
-        // Si no, agregamos un nuevo registro
-        almacen.add({ ecuacion: nm, resultado: res });
-    }
-
-    // Cuando la transacción se completa, mostramos los registros actualizados
-    transaction.addEventListener("complete", Mostrar);
-
-    // Limpiamos input y letiables
-    document.querySelector("#input").value = "";
-    nm = "";
-    res = "";
-}
-
-// =========================
-// Mostrar todos los registros
-// =========================
-function Mostrar() {
-    memoryContainer.innerHTML = "";
-
-    let transaccion = bd.transaction(["numero"]);
-    let almacen = transaccion.objectStore("numero");
-    let puntero = almacen.openCursor();
-
-    puntero.addEventListener("success", MostrarNumero);
-}
-
-// =========================
-// Mostrar cada registro individual con botón para editar
-// =========================
-function MostrarNumero(evento) {
-    let puntero = evento.target.result;
-
-    if (puntero) {
-        memoryContainer.innerHTML += `
-                <div class="contenido" data-id="${puntero.value.id}">
-                <div class = "Flex-space">
-                 <strong>Ecuación:</strong> <div class="ecuacionn">${puntero.value.ecuacion} </div>
-                  </div>
-                  <div class = "Flex-space">
-                <strong>Resultado:</strong> <div class="resultadoo">${puntero.value.resultado} </div>
-                </div>
-                <div class = "Flex">
-                <button class="borrar" value="Borrar" onclick="eliminarNumero(${puntero.value.id})">Borrar</button>
-                <button class="Mmas"  onclick="memoriaMas()">M+</button>
-                <button class="Mmenos" onclick="memoriaMenos()">M-</button>
-                <button class="editarr"  onclick="editarEcuacion(${puntero.value.id})">Editar</button>
-                </div>
-
-            </div>
-        `;
-        puntero.continue(); // Pasar al siguiente registro
-    }
-}
-
-// =========================
-// Cargar registro en el input para editarlo
-// =========================
-function editarEcuacion(id) {
-    let transaccion = bd.transaction(["numero"], "readonly");
-    let almacen = transaccion.objectStore("numero");
-    let solicitud = almacen.get(id);
-
-    solicitud.addEventListener("success", function () {
-        let resultado = solicitud.result;
-
-        if (resultado) {
-            idEnEdicion = id;
-            document.querySelector("#input").value = resultado.ecuacion;
-            nm = resultado.ecuacion;
-            res = resultado.resultado;
-        }
-    });
-}
-
-// =========================
-// botone de eliminar
-// =========================
-function eliminarNumero(key) {
-    let transaccion = bd.transaction(["numero"], "readwrite");
-    let almacen = transaccion.objectStore("numero");
-    let solicitud = almacen.delete(key);
-    transaccion.addEventListener("complete", Mostrar);
-}
-function eliminarTodo() {
-    let transaccion = bd.transaction(["numero"], "readwrite");
-    let almacen = transaccion.objectStore("numero");
-    let solicitud = almacen.clear();
-    transaccion.addEventListener("complete", Mostrar);
-}
-// =========================
-// Manejo de errores
-// =========================
-function MostrarError(evento) {
-    console.error("Error", evento);
-}
-// =========================
-// Conexión exitosa a la base de datos
-// =========================
-function Comenzar(evento) {
-    bd = evento.target.result;
-    Mostrar(); // Mostrar registros al iniciar
-    actualizarValorOriginal(); // <--- ahora bd ya existe
-    // =========================
-    // Función para actualizar la memoria M+ o M-
-    // =========================
-    function actualizarMemoria(id, operacion) {
-        if (!bd) return;
-
-        const transaction = bd.transaction(["numero"], "readwrite");
-        const almacen = transaction.objectStore("numero");
-        const solicitud = almacen.get(id);
-
-        solicitud.onsuccess = (event) => {
-            const registro = event.target.result;
-            if (!registro) return;
-
-            // Guardamos el valor original la primera vez
-            if (registro.resultadoOriginal === undefined) {
-                registro.resultadoOriginal = Math.abs(Number(registro.resultado));
-            }
-
-            // Convertimos resultado a número antes de operar
-            let valorActual = Number(registro.resultado);
-
-            // Operación M+ o M-
-            if (operacion === "sumar") {
-                valorActual += Number(document.querySelector("input").value);
-            } else if (operacion === "restar") {
-                valorActual -= Number(document.querySelector("input").value);
-            }
-            registro.resultado = valorActual;
-
-            const requestUpdate = almacen.put(registro);
-            requestUpdate.onsuccess = () => {
-                const divContenedor = memoryContainer.querySelector(`.contenido[data-id='${id}'] .resultadoo`);
-                if (divContenedor) divContenedor.textContent = registro.resultado;
-            };
-        };
-    }
-
-    // =========================
-    // Escucha de botones M+ y M-
-    // =========================
-    document.addEventListener("click", (e) => {
-        if (e.target.classList.contains("Mmas")) {
-            const id = Number(e.target.closest(".contenido").dataset.id);
-            actualizarMemoria(id, "sumar");
-        }
-        if (e.target.classList.contains("Mmenos")) {
-            const id = Number(e.target.closest(".contenido").dataset.id);
-            actualizarMemoria(id, "restar");
-        }
-    });
-
-}
-// =========================
-// Guardar el valor original de la memoria
-// =========================
-let valorOriginalMemoria = 0;
-let idUltimoResultado = null;
-
-function actualizarValorOriginal() {
-    let transaccion = bd.transaction(["numero"], "readonly");
-
-    let store = transaccion.objectStore("numero");
-    let request = store.openCursor(null, 'prev'); // Cursor inverso para obtener el último registro
-
-    request.onsuccess = function (event) {
-        let cursor = event.target.result;
-        if (cursor) {
-            valorOriginalMemoria = parseFloat(cursor.value.resultado);
-            idUltimoResultado = cursor.value.id;
-        } else {
-            valorOriginalMemoria = 0;
-            idUltimoResultado = null;
-        }
-    };
-
-    request.onerror = function (event) {
-        console.error("Error al obtener el último resultado", event);
-        valorOriginalMemoria = 0;
-        idUltimoResultado = null;
-    };
-}
-
-// =========================
-// Función global M+
-// =========================
-function memoriaMasGlobal() {
-    if (idUltimoResultado === null) return;
-
-    let transaction = bd.transaction(["numero"], "readwrite");
-    let store = transaction.objectStore("numero");
-
-    // Obtener valor actual de la memoria
-    let getRequest = store.get(idUltimoResultado);
-    getRequest.onsuccess = function () {
-        let registro = getRequest.result;
-        let nuevoValor = parseFloat(registro.resultado) + Number(document.querySelector("input").value);
-        store.put({ id: idUltimoResultado, ecuacion: registro.ecuacion, resultado: nuevoValor });
-
-        transaction.oncomplete = () => {
-            Mostrar(); // Refresca la memoria visual
-        };
-    };
-}
-
-// =========================
-// Función global M-
-// =========================
-function memoriaMenosGlobal() {
-    if (idUltimoResultado === null) return;
-
-    let transaction = bd.transaction(["numero"], "readwrite");
-    let store = transaction.objectStore("numero");
-
-    // Obtener valor actual de la memoria
-    let getRequest = store.get(idUltimoResultado);
-    getRequest.onsuccess = function () {
-        let registro = getRequest.result;
-        let nuevoValor = parseFloat(registro.resultado) - Number(document.querySelector("input").value);
-        store.put({ id: idUltimoResultado, ecuacion: registro.ecuacion, resultado: nuevoValor });
-
-        transaction.oncomplete = () => {
-            Mostrar(); // Refresca la memoria visual
-        };
-    };
-}
-document.querySelector("#globalMPlus").addEventListener("click", memoriaMasGlobal);
-document.querySelector("#globalMMinus").addEventListener("click", memoriaMenosGlobal);
-
-window.addEventListener("load", actualizarValorOriginal);
-
-// =========================
-// Inicializar todo al cargar la página
-// =========================
-window.addEventListener("load", runbd);
-
-
-// =========================
-// 1. letiables principales
-// =========================
-
-let equalPressed = 0;
-let buttons = document.querySelectorAll(".button");
-let input = document.getElementById("input");
-let equal = document.getElementById("equal");
-let clear = document.getElementById("clear");
-let erase = document.getElementById("erase");
-let historyContent = document.getElementById("historyContent");
-const bmore = document.querySelector('#clickk');
+// Botón de mostrar/ocultar memoria
+const bmore = document.querySelector("#clickk");
 const mMore = document.querySelector("#precionar");
 
-bmore.addEventListener("click", (e) => {
-    mMore.classList.toggle('memoryButton');
+// Toggle para mostrar/ocultar la memoria
+bmore.addEventListener("click", () => {
+    mMore.classList.toggle("memoryButton");
 });
 
-// =========================
-// 2. Inicialización
-// =========================
+// Inicialización
 window.onload = () => {
-    input.value = "";
+    input.value = ""; // Limpiar pantalla al inicio
 };
 
-// =========================
-// 3. Manejo de botones
-// =========================
+// Manejo de botones
 buttons.forEach((button) => {
     button.addEventListener("click", (event) => {
-        if (equalPressed === 1) {
-            equalPressed = 0;
+        if (equalPressed) equalPressed = 0;
+
+        const value = event.target.dataset.number;
+
+        switch (value) {
+            case "AC": // Limpiar pantalla
+                input.value = "";
+                break;
+
+            case "DEL": // Borrar último caracter
+                input.value = input.value.slice(0, -1);
+                break;
+
+            case "+/-": // Cambiar signo del último número
+                invertirUltimoNumero();
+                break;
+
+            case "%": // Convertir a porcentaje
+                if (input.value !== "") {
+                    input.value = (parseFloat(input.value) / 100).toString();
+                }
+                break;
+
+            case "1/": // Inverso
+                calcularInverso();
+                break;
+
+            default: // Agregar el valor al input
+                input.value += value;
         }
-
-        let value = event.target.dataset.number;
-
-        if (value === "AC") {
-            input.value = "";
-            return;
-        }
-
-        if (value === "DEL") {
-            input.value = input.value.slice(0, -1);
-            return;
-        }
-        if (value === "+/-") {
-            let expr = input.value;
-            let regex = /(-?\d+(\.\d+)?)(?!.*\d)/;
-            let match = expr.match(regex);
-            if (match) {
-                let numero = match[0];
-                let numeroInvertido = numero.startsWith("-") ? numero.slice(1) : "-" + numero;
-                input.value = expr.slice(0, match.index) + numeroInvertido + expr.slice(match.index + numero.length);
-            }
-
-            return;
-        }
-
-
-        if (value === "%") {
-            if (input.value !== "") {
-                input.value = (parseFloat(input.value) / 100).toString();
-                return;
-            }
-        }
-        if (value === "1/") {
-            if (input.value !== "" && parseFloat(input.value) !== 0) {
-                input.value = (1 / parseFloat(input.value)).toString();
-            }
-            else {
-                alert("Error: División entre 0");
-            }
-            return;
-        }
-
-        else { input.value += value; }
     });
 });
-function parseEcuacion(input) {
-    //  Lista de caracteres permitidos
-    const permitidos = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+-*/=^.,→() ";
 
-    //  Verificar que cada carácter sea válido
-    for (let i = 0; i < input.length; i++) {
-        if (!permitidos.includes(input[i])) {
-            return { valido: false, error: `Carácter inválido: "${input[i]}"` };
-        }
+// Funciones auxiliares
+
+// Cambia el signo al último número escrito
+function invertirUltimoNumero() {
+    const expr = input.value;
+    const regex = /(-?\d+(\.\d+)?)(?!.*\d)/; // último número
+    const match = expr.match(regex);
+
+    if (match) {
+        const numero = match[0];
+        const numeroInvertido = numero.startsWith("-")
+            ? numero.slice(1)
+            : "-" + numero;
+
+        input.value =
+            expr.slice(0, match.index) +
+            numeroInvertido +
+            expr.slice(match.index + numero.length);
     }
+}
 
-    //  Tokenización: separar números, letras y operadores
-    const regex = /[a-zA-Z]+|\d+(\.\d+)?|[+\-*/^=()]/g;
-    const tokens = input.match(regex);
-
-    //  Revisar que haya tokens válidos
-    if (!tokens || tokens.length === 0) {
-        return { valido: false, error: "Ecuación vacía o inválida" };
+// Calcula 1/x validando división por cero
+function calcularInverso() {
+    if (input.value !== "" && parseFloat(input.value) !== 0) {
+        input.value = (1 / parseFloat(input.value)).toString();
+    } else {
+        alert("Error: División entre 0");
     }
-
-    // Todo válido
-    return { valido: true, tokens: tokens };
 }
 
-// =========================
-// 3.5 funciones matematicas
-// =========================
-Math.sec = function (x) { return 1 / Math.cos(x); };
-Math.cot = function (x) { return 1 / Math.tan(x); };
-Math.csc = function (x) { return 1 / Math.sin(x); };
-
-Math.asec = function (x) { return Math.acos(1 / x); };
-Math.acot = function (x) { return Math.atan(1 / x); };
-Math.acsc = function (x) { return Math.asin(1 / x); };
-
-Math.sech = function (x) { return 1 / Math.cosh(x); };
-Math.coth = function (x) { return 1 / Math.tanh(x); };
-Math.csch = function (x) { return 1 / Math.sinh(x); };
-
-Math.acoth = function (x) { return 0.5 * Math.log((x + 1) / (x - 1)); };
-Math.asech = function (x) { return Math.log((1 + Math.sqrt(1 - x * x)) / x); };
-Math.acsch = function (x) { return Math.log((1 / x) + Math.sqrt(1 + 1 / (x * x))); };
-function logxy(x, y) { return Math.log(x) / Math.log(y); };
-
-// =========================
-// Funciones DMS y DEG
-// =========================
-function DMS(x) {
-    let grados = Math.floor(x);
-    let minutosDecimal = (x - grados) * 60;
-    let minutos = Math.floor(minutosDecimal);
-    let segundos = (minutosDecimal - minutos) * 60;
-    return `${grados}° ${minutos}' ${segundos.toFixed(2)}"`;
-}
-function DEG(g, m, s) {
-    return g + (m / 60) + (s / 3600);
-}
-function mod(a, b) {
-    return ((a % b) + b) % b;
-}
-function EXPT(a, b) {
-    return a * Math.pow(10, b);
-}
-// =========================
-// 4. Calcular expresión
-// =========================
+// Calcular expresión
 function calcularResultado() {
     equalPressed = 1;
-    let inputValue = input.value;
+    const inputValue = input.value;
+
     try {
         let expresion = inputValue;
 
         // Validar con parser ANTES de reemplazos
-        const parsed = parseEcuacion(inputValue);
-        if (!parsed.valido) {
-            alert("Error: " + parsed.error);
-            return;
-        }
-        // Reemplazos matemáticos
-        expresion = expresion.replaceAll("pow(", "Math.pow(");
-        expresion = expresion.replaceAll("xylog(", "logxy(");
-        expresion = expresion.replace(/(\d+\.?\d*)→dms/g, 'DMS($1)');
-        expresion = expresion.replace(/(\d+),(\d+),(\d+)→deg/g, 'DEG($1,$2,$3)');
+        if (!parsear(inputValue)) return;
 
-        expresion = expresion
+        // Reemplazos matemáticos
+        expresion = expresion.replaceAll("pow(", "Math.pow(")
+            .replaceAll("xylog(", "logxy(")
+            .replace(/(\d+\.?\d*)→dms/g, "DMS($1)")
+            .replace(/(\d+),(\d+),(\d+)→deg/g, "DEG($1,$2,$3)")
+            .replace(/∛(\d+(\.\d+)?|\([^()]+\))/g, "Math.cbrt($1)")
+            .replace(/²√(\d+(\.\d+)?|\([^()]+\))/g, "Math.sqrt($1)")
+            .replace(/yroot(\d+(\.\d+)?|\([^()]+\))/g, "Math.pow($1)")
             .replaceAll("MOD(", "mod(")
+            // Trigonometría y logaritmos
             .replaceAll(/\bacoth\b/g, "Math.acoth")
             .replaceAll(/\bacsch\b/g, "Math.acsch")
             .replaceAll(/\basech\b/g, "Math.asech")
@@ -511,201 +133,40 @@ function calcularResultado() {
             .replaceAll(/\bsec\b/g, "Math.sec")
             .replaceAll(/\bcot\b/g, "Math.cot")
             .replaceAll(/\bcsc\b/g, "Math.csc")
+            // Potencias y raíces
             .replaceAll("²", "**2")
             .replaceAll("³", "**3")
-            .replaceAll("²√x", "Math.sqrt")
-            .replaceAll("∛x", "Math.cbrt")
-            .replaceAll("yroot(", "Math.pow(")
+            // Logs y exponenciales
             .replaceAll("exp(", "EXPT(")
             .replaceAll("ln(", "Math.log(")
             .replaceAll("log(", "Math.log10(")
             .replaceAll("e^(", "Math.exp(")
             .replaceAll("10^", "10**")
+            // Otros
             .replaceAll("|x|(", "Math.abs(")
             .replaceAll("⌊x⌋(", "Math.floor(")
             .replaceAll("⌈x⌉(", "Math.ceil(")
             .replaceAll(/(\d+)!/g, (_, num) => factorial(Number(num)));
+
+        // Ajustar argumentos trigonométricos
         expresion = transformarArgumentosTrigo(expresion);
 
-        let result = eval(expresion);
-        console.log(expresion)
-        // Mostrar correctamente si es string (DMS) o número
-        input.value = typeof result === "string" ? result : (Number.isInteger(result) ? result : result.toFixed(2));
+        // Evaluar la expresión final
+        const result = eval(expresion);
+        console.log("Expresión evaluada:", expresion);
 
+        // Mostrar resultado
+        input.value = (typeof result === "string")
+            ? result
+            : (Number.isInteger(result) ? result : result.toFixed(2));
+
+        // Guardar en historial/memoria
         agregarId(inputValue, input.value);
-
 
     } catch (error) {
         alert("Error: " + error.message);
     }
 }
+
+// Evento: calcular al presionar "="
 equal.addEventListener("click", calcularResultado);
-// =========================
-// 5. Funciones auxiliares
-// =========================
-function factorial(n) {
-    if (n <= 1) return 1;
-    return n * factorial(n - 1);
-}
-
-
-
-// =========================
-// Función para añadir al historial (con localStorage)
-// =========================
-function addToHistory(idi, expression, result) {
-    let historyItem = document.createElement("div");
-    historyItem.className = "history-item";
-
-    let span = document.createElement("span");
-    res = `${result}`;
-    nm = `${expression}`;
-    span.textContent = `${expression} = ${res}`;
-    historyItem.appendChild(span);
-
-    historyItem.dataset.idi = idi;
-
-    let deleteBtn = document.createElement("button");
-    deleteBtn.textContent = "Eliminar";
-    deleteBtn.className = "delete-history";
-    deleteBtn.addEventListener("click", () => {
-        removeFromLocalStorage(Number(historyItem.dataset.idi));
-        historyItem.remove();
-    });
-
-    span.style.cursor = "pointer";
-    span.dataset.userInput = expression;
-    span.dataset.userResult = result;
-    span.addEventListener("click", () => {
-        input.value = span.dataset.userInput;
-    });
-
-    historyItem.appendChild(deleteBtn);
-    document.getElementById("historyContent").appendChild(historyItem);
-    saveToLocalStorage(idi, expression, result);
-}
-
-// =========================
-// Guardar en localStorage
-// =========================
-function saveToLocalStorage(idi, expression, result) {
-    let history = JSON.parse(localStorage.getItem("historial")) || [];
-    history.push({ idi, expression, result });
-    localStorage.setItem("historial", JSON.stringify(history));
-}
-
-// =========================
-// Cargar historial desde localStorage
-// =========================
-function loadHistory() {
-    let history = JSON.parse(localStorage.getItem("historial")) || [];
-    history.forEach(item => {
-        addHistoryFromStorage(item.idi, item.expression, item.result);
-    });
-}
-
-// =========================
-// Añadir historial desde localStorage
-// =========================
-function addHistoryFromStorage(idi, expression, result) {
-    let historyItem = document.createElement("div");
-    historyItem.className = "history-item";
-
-    let span = document.createElement("span");
-
-    res = `${result}`;
-    nm = `${expression}`;
-    span.textContent = `${expression} = ${result}`;
-    historyItem.appendChild(span);
-
-    let deleteBtn = document.createElement("button");
-    deleteBtn.textContent = "Eliminar";
-    deleteBtn.className = "delete-history";
-    historyItem.dataset.idi = idi;
-    deleteBtn.addEventListener("click", () => {
-        removeFromLocalStorage(Number(historyItem.dataset.idi));
-        historyItem.remove();
-    });
-    historyItem.appendChild(deleteBtn);
-    span.addEventListener("click", () => {
-        input.value = span.dataset.userInput;
-    });
-    span.style.cursor = "pointer";
-    span.dataset.userInput = expression;
-    span.dataset.userResult = result;
-
-    document.getElementById("historyContent").appendChild(historyItem);
-}
-
-// =========================
-// Eliminar de localStorage
-// =========================
-function removeFromLocalStorage(idi) {
-    let history = JSON.parse(localStorage.getItem("historial")) || [];
-    history = history.filter(item => item.idi !== idi);
-    localStorage.setItem("historial", JSON.stringify(history));
-}
-
-// =========================
-// Reconstruir historial al cargar
-// =========================
-window.addEventListener("load", () => {
-    loadHistory();
-});
-// ya me dio pereza comentar
-function agregarId(expression, result) {
-    let idi = Date.now() + Math.random();
-    addToHistory(idi, expression, result)
-}
-let estado = 0;
-document.getElementById("multiBtn").addEventListener("click", () => {
-    switch (estado) {
-        case 0:
-            document.getElementById("multiBtn").textContent = "GRAD";
-            estado = 1;
-            break;
-        case 1:
-            document.getElementById("multiBtn").textContent = "DEG";
-            estado = 2;
-            break;
-        case 2:
-            document.getElementById("multiBtn").textContent = "RAD";
-            estado = 0;
-            break;
-
-    }
-});
-function obtenerModoAngulo() {
-    const texto = document.getElementById("multiBtn").textContent;
-    return texto; // DEG RAD GRAD
-}
-function transformarArgumentosTrigo(expresion) {
-    const modo = obtenerModoAngulo();
-
-    return expresion.replace(/\b(sin|cos|tan|sec|csc|cot|asin|acos|atan|asec|acsc|acot)\s*\(([^)]+)\)/g,
-        (match, func, arg) => {
-            let nuevoArg = arg;
-
-            // Para funciones trigonométricas normales (sin, cos, tan...)
-            if (!func.startsWith("a")) {
-                if (modo === "DEG") nuevoArg = `(${arg})*Math.PI/180`;
-                if (modo === "GRAD") nuevoArg = `(${arg})*Math.PI/200`;
-            }
-
-            // Para funciones inversas (asin, acos, atan...)
-            let conversionResultado = "";
-            if (func.startsWith("a")) {
-                if (modo === "DEG") conversionResultado = `*180/Math.PI`;
-                if (modo === "GRAD") conversionResultado = `*200/Math.PI`;
-            }
-
-            return `${func}(${nuevoArg})${conversionResultado}`;
-        });
-}
-const btnFe = document.querySelector("#fBtn");
-let active = false;
-
-btnFe.addEventListener("click", () => {
-    active = !active;
-    console.log("F-E activado:", active);
-});
