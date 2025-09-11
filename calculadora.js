@@ -91,79 +91,26 @@ function calcularInverso() {
 
 // Calcular expresión
 function calcularResultado() {
-    equalPressed = 1;
-    const inputValue = input.value;
-
     try {
+        equalPressed = 1;
+        const inputValue = input.value;
+
         let expresion = inputValue;
 
         // Validar con parser ANTES de reemplazos
         if (!parsear(inputValue)) return;
 
         // Reemplazos matemáticos
-        expresion = expresion.replaceAll("pow(", "Math.pow(")
-            .replaceAll("xylog(", "logxy(")
-            .replace(/(\d+\.?\d*)→dms/g, "DMS($1)")
-            .replace(/(\d+),(\d+),(\d+)→deg/g, "DEG($1,$2,$3)")
-            .replace(/∛(\d+(\.\d+)?|\([^()]+\))/g, "Math.cbrt($1)")
-            .replace(/²√(\d+(\.\d+)?|\([^()]+\))/g, "Math.sqrt($1)")
-            .replace(/yroot(\d+(\.\d+)?|\([^()]+\))/g, "Math.pow($1)")
-            .replaceAll("MOD(", "mod(")
-            // Trigonometría y logaritmos
-            .replaceAll(/\bacoth\b/g, "Math.acoth")
-            .replaceAll(/\bacsch\b/g, "Math.acsch")
-            .replaceAll(/\basech\b/g, "Math.asech")
-            .replaceAll(/\basin\b/g, "Math.asin")
-            .replaceAll(/\bacos\b/g, "Math.acos")
-            .replaceAll(/\batan\b/g, "Math.atan")
-            .replaceAll(/\basec\b/g, "Math.asec")
-            .replaceAll(/\bacsc\b/g, "Math.acsc")
-            .replaceAll(/\bacot\b/g, "Math.acot")
-            .replaceAll(/\basinh\b/g, "Math.asinh")
-            .replaceAll(/\bacosh\b/g, "Math.acosh")
-            .replaceAll(/\batanh\b/g, "Math.atanh")
-            .replaceAll(/\bsinh\b/g, "Math.sinh")
-            .replaceAll(/\bcosh\b/g, "Math.cosh")
-            .replaceAll(/\btanh\b/g, "Math.tanh")
-            .replaceAll(/\bcoth\b/g, "Math.coth")
-            .replaceAll(/\bcsch\b/g, "Math.csch")
-            .replaceAll(/\bsech\b/g, "Math.sech")
-            .replaceAll(/\bsin\b/g, "Math.sin")
-            .replaceAll(/\bcos\b/g, "Math.cos")
-            .replaceAll(/\btan\b/g, "Math.tan")
-            .replaceAll(/\bsec\b/g, "Math.sec")
-            .replaceAll(/\bcot\b/g, "Math.cot")
-            .replaceAll(/\bcsc\b/g, "Math.csc")
-            // Potencias y raíces
-            .replaceAll("²", "**2")
-            .replaceAll("³", "**3")
-            // Logs y exponenciales
-            .replaceAll("exp(", "EXPT(")
-            .replaceAll("ln(", "Math.log(")
-            .replaceAll("log(", "Math.log10(")
-            .replaceAll("e^(", "Math.exp(")
-            .replaceAll("10^", "10**")
-            // Otros
-            .replaceAll("|x|(", "Math.abs(")
-            .replaceAll("⌊x⌋(", "Math.floor(")
-            .replaceAll("⌈x⌉(", "Math.ceil(")
-            .replaceAll(/(\d+)!/g, (_, num) => factorial(Number(num)));
-
-        // Ajustar argumentos trigonométricos
-        expresion = transformarArgumentosTrigo(expresion);
+        expresion = replaceFunction(inputValue);
 
         // Evaluar la expresión final 
-        const result = Function('"use strict"; return('+ expresion + ')')();
-
-        console.log("Expresión evaluada:", expresion);
+        const result = evalExpresion(expresion);
 
         // Mostrar resultado
-        input.value = (typeof result === "string")
-            ? result
-            : (Number.isInteger(result) ? result : result.toFixed(2));
+        inputView(result);
 
         // Guardar en historial/memoria
-        agregarId(inputValue, input.value);
+        agregarId(inputValue, result);
 
     } catch (error) {
         alert("Error: " + error.message);
@@ -172,3 +119,82 @@ function calcularResultado() {
 
 // Evento: calcular al presionar "="
 equal.addEventListener("click", calcularResultado);
+
+
+function inputView(result) {
+    input.value = (typeof result === "string")
+        ? result
+        : (Number.isInteger(result) ? result : result.toFixed(2));
+}
+
+
+function replaceFunction(expresion) {
+    let output = expresion
+    output = output
+        .replaceAll("pow(", "Math.pow(")
+        .replaceAll("xylog(", "logxy(")
+        .replace(/(\d+\.?\d*)→dms/g, "DMS($1)")
+        .replace(/(\d+),(\d+),(\d+)→deg/g, "DEG($1,$2,$3)")
+        .replace(/∛(\d+(\.\d+)?|\([^()]+\))/g, "Math.cbrt($1)")
+        .replace(/²√(\d+(\.\d+)?|\([^()]+\))/g, "Math.sqrt($1)")
+        .replace(/yroot(\d+(\.\d+)?|\([^()]+\))/g, "Math.pow($1)")
+        .replaceAll("MOD(", "mod(")
+
+
+        // Trigonometría y logaritmos
+        .replaceAll(/\bacoth\b/g, "Math.acoth")
+        .replaceAll(/\bacsch\b/g, "Math.acsch")
+        .replaceAll(/\basech\b/g, "Math.asech")
+        .replaceAll(/\basin\b/g, "Math.asin")
+        .replaceAll(/\bacos\b/g, "Math.acos")
+        .replaceAll(/\batan\b/g, "Math.atan")
+        .replaceAll(/\basec\b/g, "Math.asec")
+        .replaceAll(/\bacsc\b/g, "Math.acsc")
+        .replaceAll(/\bacot\b/g, "Math.acot")
+        .replaceAll(/\basinh\b/g, "Math.asinh")
+        .replaceAll(/\bacosh\b/g, "Math.acosh")
+        .replaceAll(/\batanh\b/g, "Math.atanh")
+        .replaceAll(/\bsinh\b/g, "Math.sinh")
+        .replaceAll(/\bcosh\b/g, "Math.cosh")
+        .replaceAll(/\btanh\b/g, "Math.tanh")
+        .replaceAll(/\bcoth\b/g, "Math.coth")
+        .replaceAll(/\bcsch\b/g, "Math.csch")
+        .replaceAll(/\bsech\b/g, "Math.sech")
+        .replaceAll(/\bsin\b/g, "Math.sin")
+        .replaceAll(/\bcos\b/g, "Math.cos")
+        .replaceAll(/\btan\b/g, "Math.tan")
+        .replaceAll(/\bsec\b/g, "Math.sec")
+        .replaceAll(/\bcot\b/g, "Math.cot")
+        .replaceAll(/\bcsc\b/g, "Math.csc")
+
+
+        // Potencias y raíces
+        .replaceAll("²", "**2")
+        .replaceAll("³", "**3")
+
+
+        // Logs y exponenciales
+        .replaceAll("exp(", "EXPT(")
+        .replaceAll("ln(", "Math.log(")
+        .replaceAll("log(", "Math.log10(")
+        .replaceAll("e^(", "Math.exp(")
+        .replaceAll("10^", "10**")
+
+
+        // Otros
+        .replaceAll("|x|(", "Math.abs(")
+        .replaceAll("⌊x⌋(", "Math.floor(")
+        .replaceAll("⌈x⌉(", "Math.ceil(")
+        .replaceAll(/(\d+)!/g, (_, num) => factorial(Number(num)));
+
+    // Ajustar argumentos trigonométricos
+    output = transformarArgumentosTrigo(output);
+    return output;
+}
+
+function evalExpresion(expresion) {
+    const result = Function('"use strict"; return(' + expresion + ')')();
+    console.log("Expresión evaluada:", expresion);
+    return result;
+
+}
