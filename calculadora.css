@@ -92,6 +92,7 @@ h2 {
 }
 
 .display input::placeholder {
+   margin-left:10px;
     color: #9490ac;
 }
 
@@ -382,4 +383,5 @@ button {
 
 .Flex {
     display: flex;
+
 }
