@@ -86,8 +86,9 @@ h2 {
     font-size: 35px;
     color: white;
     text-align: right;
-    background-color: transparent;
-    border: none;
+    background-color: #6c6a6a;
+    border: 1px solid #6c6a6a;
+    border-radius: 3px;
 }
 
 .display input::placeholder {
