@@ -3,13 +3,13 @@ function addToHistory(idi, expression, result) {
     let historyItem = document.createElement("div");
     historyItem.className = "history-item";
 
-    // Actualizar variables globales nm y res
-    res = `${result}`;
-    nm = `${expression}`;
+    // Asegurar consistencia en stateObject
+    stateObject.result = `${result}`;
+    stateObject.expression = `${expression}`;
 
     // Crear span con la ecuación y resultado
     let span = document.createElement("span");
-    span.textContent = `${expression} = ${res}`;
+    span.textContent = `${expression} = ${result}`;
     span.style.cursor = "pointer";
     span.dataset.userInput = expression;
     span.dataset.userResult = result;
@@ -60,9 +60,9 @@ function addHistoryFromStorage(idi, expression, result) {
     let historyItem = document.createElement("div");
     historyItem.className = "history-item";
 
-    // Actualizar variables globales nm y res
-    res = `${result}`;
-    nm = `${expression}`;
+    // Actualizar stateObject
+    stateObject.result = `${result}`;
+    stateObject.expression = `${expression}`;
 
     // Crear span con la ecuación y resultado
     let span = document.createElement("span");

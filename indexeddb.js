@@ -1,13 +1,7 @@
-// --- Variables principales ---
-let bd;                     // Base de datos
-let idEnEdicion = null;     // ID del registro que se está editando
-let memoryContainer;        // Contenedor donde se mostrarán los registros
-let valorOriginalMemoria = 0;
-let idUltimoResultado = null;
+// --- Módulo IndexedDB con stateObject ---
 
-// --- Inicializar IndexedDB y eventos al cargar la página ---
 function runbd() {
-    memoryContainer = document.querySelector("#Memory");
+    stateObject.memoryContainer = document.querySelector("#Memory");
     let btnGuardar = document.querySelector(".btnGuardar");
 
     btnGuardar.addEventListener("click", almacenarNumero);
@@ -28,32 +22,32 @@ function Crearalmacen(evento) {
 
 // --- Guardar o actualizar un registro ---
 function almacenarNumero() {
-    if (!nm || nm.trim() === "") {
+    if (!stateObject.expression || stateObject.expression.trim() === "") {
         alert("No puedes guardar una ecuación vacía.");
         return;
     }
 
-    let transaction = bd.transaction(["numero"], "readwrite");
+    let transaction = stateObject.bd.transaction(["numero"], "readwrite");
     let almacen = transaction.objectStore("numero");
 
-    if (idEnEdicion !== null) {
-        almacen.put({ id: idEnEdicion, ecuacion: nm, resultado: res });
-        idEnEdicion = null;
+    if (stateObject.idEnEdicion !== null) {
+        almacen.put({ id: stateObject.idEnEdicion, ecuacion: stateObject.expression, resultado: stateObject.result });
+        stateObject.idEnEdicion = null;
     } else {
-        almacen.add({ ecuacion: nm, resultado: res });
+        almacen.add({ ecuacion: stateObject.expression, resultado: stateObject.result });
     }
 
     transaction.addEventListener("complete", Mostrar);
 
     document.querySelector("#input").value = "";
-    nm = "";
-    res = "";
+    stateObject.expression = "";
+    stateObject.result = "";
 }
 
 // --- Mostrar todos los registros ---
 function Mostrar() {
-    memoryContainer.innerHTML = "";
-    let transaccion = bd.transaction(["numero"]);
+    stateObject.memoryContainer.innerHTML = "";
+    let transaccion = stateObject.bd.transaction(["numero"]);
     let almacen = transaccion.objectStore("numero");
     let puntero = almacen.openCursor();
     puntero.addEventListener("success", MostrarNumero);
@@ -64,7 +58,7 @@ function MostrarNumero(evento) {
     let puntero = evento.target.result;
 
     if (puntero) {
-        memoryContainer.innerHTML += `
+        stateObject.memoryContainer.innerHTML += `
             <div class="contenido" data-id="${puntero.value.id}">
                 <div class="Flex-space">
                     <strong>Ecuación:</strong> <div class="ecuacionn">${puntero.value.ecuacion}</div>
@@ -74,8 +68,8 @@ function MostrarNumero(evento) {
                 </div>
                 <div class="Flex">
                     <button class="borrar" onclick="eliminarNumero(${puntero.value.id})">Borrar</button>
-                    <button class="Mmas" onclick="memoriaMas()">M+</button>
-                    <button class="Mmenos" onclick="memoriaMenos()">M-</button>
+                    <button class="Mmas">M+</button>
+                    <button class="Mmenos">M-</button>
                     <button class="editarr" onclick="editarEcuacion(${puntero.value.id})">Editar</button>
                 </div>
             </div>
@@ -86,24 +80,24 @@ function MostrarNumero(evento) {
 
 // --- Cargar registro en el input para editarlo ---
 function editarEcuacion(id) {
-    let transaccion = bd.transaction(["numero"], "readonly");
+    let transaccion = stateObject.bd.transaction(["numero"], "readonly");
     let almacen = transaccion.objectStore("numero");
     let solicitud = almacen.get(id);
 
     solicitud.addEventListener("success", function () {
         let resultado = solicitud.result;
         if (resultado) {
-            idEnEdicion = id;
+            stateObject.idEnEdicion = id;
             document.querySelector("#input").value = resultado.ecuacion;
-            nm = resultado.ecuacion;
-            res = resultado.resultado;
+            stateObject.expression = resultado.ecuacion;
+            stateObject.result = resultado.resultado;
         }
     });
 }
 
 // --- Eliminar un registro ---
 function eliminarNumero(key) {
-    let transaccion = bd.transaction(["numero"], "readwrite");
+    let transaccion = stateObject.bd.transaction(["numero"], "readwrite");
     let almacen = transaccion.objectStore("numero");
     almacen.delete(key);
     transaccion.addEventListener("complete", Mostrar);
@@ -111,7 +105,7 @@ function eliminarNumero(key) {
 
 // --- Eliminar todos los registros ---
 function eliminarTodo() {
-    let transaccion = bd.transaction(["numero"], "readwrite");
+    let transaccion = stateObject.bd.transaction(["numero"], "readwrite");
     let almacen = transaccion.objectStore("numero");
     almacen.clear();
     transaccion.addEventListener("complete", Mostrar);
@@ -124,14 +118,14 @@ function MostrarError(evento) {
 
 // --- Conexión exitosa a la base de datos ---
 function Comenzar(evento) {
-    bd = evento.target.result;
+    stateObject.bd = evento.target.result;
     Mostrar();
     actualizarValorOriginal();
 
     // --- Función interna para actualizar la memoria individual ---
     function actualizarMemoria(id, operacion) {
-        if (!bd) return;
-        const transaction = bd.transaction(["numero"], "readwrite");
+        if (!stateObject.bd) return;
+        const transaction = stateObject.bd.transaction(["numero"], "readwrite");
         const almacen = transaction.objectStore("numero");
         const solicitud = almacen.get(id);
 
@@ -155,7 +149,7 @@ function Comenzar(evento) {
 
             const requestUpdate = almacen.put(registro);
             requestUpdate.onsuccess = () => {
-                const divContenedor = memoryContainer.querySelector(`.contenido[data-id='${id}'] .resultadoo`);
+                const divContenedor = stateObject.memoryContainer.querySelector(`.contenido[data-id='${id}'] .resultadoo`);
                 if (divContenedor) divContenedor.textContent = registro.resultado;
             };
         };
@@ -176,53 +170,53 @@ function Comenzar(evento) {
 
 // --- Guardar el valor original de la memoria ---
 function actualizarValorOriginal() {
-    let transaccion = bd.transaction(["numero"], "readonly");
+    let transaccion = stateObject.bd.transaction(["numero"], "readonly");
     let store = transaccion.objectStore("numero");
     let request = store.openCursor(null, 'prev');
 
     request.onsuccess = function (event) {
         let cursor = event.target.result;
         if (cursor) {
-            valorOriginalMemoria = parseFloat(cursor.value.resultado);
-            idUltimoResultado = cursor.value.id;
+            stateObject.valorOriginalMemoria = parseFloat(cursor.value.resultado);
+            stateObject.idUltimoResultado = cursor.value.id;
         } else {
-            valorOriginalMemoria = 0;
-            idUltimoResultado = null;
+            stateObject.valorOriginalMemoria = 0;
+            stateObject.idUltimoResultado = null;
         }
     };
 
     request.onerror = function (event) {
         console.error("Error al obtener el último resultado", event);
-        valorOriginalMemoria = 0;
-        idUltimoResultado = null;
+        stateObject.valorOriginalMemoria = 0;
+        stateObject.idUltimoResultado = null;
     };
 }
 
 // --- Funciones de memoria global ---
 function memoriaMasGlobal() {
-    if (idUltimoResultado === null) return;
-    let transaction = bd.transaction(["numero"], "readwrite");
+    if (stateObject.idUltimoResultado === null) return;
+    let transaction = stateObject.bd.transaction(["numero"], "readwrite");
     let store = transaction.objectStore("numero");
 
-    let getRequest = store.get(idUltimoResultado);
+    let getRequest = store.get(stateObject.idUltimoResultado);
     getRequest.onsuccess = function () {
         let registro = getRequest.result;
         let nuevoValor = parseFloat(registro.resultado) + Number(document.querySelector("input").value);
-        store.put({ id: idUltimoResultado, ecuacion: registro.ecuacion, resultado: nuevoValor });
+        store.put({ id: stateObject.idUltimoResultado, ecuacion: registro.ecuacion, resultado: nuevoValor });
         transaction.oncomplete = () => Mostrar();
     };
 }
 
 function memoriaMenosGlobal() {
-    if (idUltimoResultado === null) return;
-    let transaction = bd.transaction(["numero"], "readwrite");
+    if (stateObject.idUltimoResultado === null) return;
+    let transaction = stateObject.bd.transaction(["numero"], "readwrite");
     let store = transaction.objectStore("numero");
 
-    let getRequest = store.get(idUltimoResultado);
+    let getRequest = store.get(stateObject.idUltimoResultado);
     getRequest.onsuccess = function () {
         let registro = getRequest.result;
         let nuevoValor = parseFloat(registro.resultado) - Number(document.querySelector("input").value);
-        store.put({ id: idUltimoResultado, ecuacion: registro.ecuacion, resultado: nuevoValor });
+        store.put({ id: stateObject.idUltimoResultado, ecuacion: registro.ecuacion, resultado: nuevoValor });
         transaction.oncomplete = () => Mostrar();
     };
 }
@@ -236,7 +230,7 @@ document.querySelector("#btnRecuperarMemoria").addEventListener("click", restore
 
 // --- Recuperar memoria ---
 function restoreMemory() {
-    let transaccion = bd.transaction(["numero"]);
+    let transaccion = stateObject.bd.transaction(["numero"]);
     let almacen = transaccion.objectStore("numero");
     let request = almacen.openCursor(null, "prev");
 

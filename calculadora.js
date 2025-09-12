@@ -1,7 +1,5 @@
 // calculadora.js
 // Variables principales
-let equalPressed = 0; // Bandera: indica si se presionó "="
-
 const buttons = document.querySelectorAll(".button"); // Todos los botones
 const input = document.getElementById("input");       // Pantalla principal
 const equal = document.getElementById("equal");       // Botón "="
@@ -20,97 +18,83 @@ bmore.addEventListener("click", () => {
 
 // Inicialización
 window.onload = () => {
-    input.value = ""; // Limpiar pantalla al inicio
+    input.value = "";
+    stateObject.expression = "";
+    stateObject.result = "";
 };
 
 // Manejo de botones
 buttons.forEach((button) => {
     button.addEventListener("click", (event) => {
-        if (equalPressed) equalPressed = 0;
+        if (stateObject.equalPressed) stateObject.equalPressed = 0;
 
         const value = event.target.dataset.number;
 
         switch (value) {
             case "AC": // Limpiar pantalla
                 input.value = "";
+                stateObject.expression = "";
                 break;
 
             case "DEL": // Borrar último caracter
                 input.value = input.value.slice(0, -1);
+                stateObject.expression = input.value;
                 break;
 
             case "+/-": // Cambiar signo del último número
                 invertirUltimoNumero();
+                stateObject.expression = input.value;
                 break;
 
             case "%": // Convertir a porcentaje
                 if (input.value !== "") {
                     input.value = (parseFloat(input.value) / 100).toString();
+                    stateObject.expression = input.value;
                 }
                 break;
 
             case "1/": // Inverso
                 calcularInverso();
+                stateObject.expression = input.value;
                 break;
 
             default: // Agregar el valor al input
                 input.value += value;
+                stateObject.expression = input.value;
         }
     });
 });
 
 // Funciones auxiliares
 
-// Cambia el signo al último número escrito
-function invertirUltimoNumero() {
-    const expr = input.value;
-    const regex = /(-?\d+(\.\d+)?)(?!.*\d)/; // último número
-    const match = expr.match(regex);
 
-    if (match) {
-        const numero = match[0];
-        const numeroInvertido = numero.startsWith("-")
-            ? numero.slice(1)
-            : "-" + numero;
-
-        input.value =
-            expr.slice(0, match.index) +
-            numeroInvertido +
-            expr.slice(match.index + numero.length);
-    }
-}
-
-// Calcula 1/x validando división por cero
-function calcularInverso() {
-    if (input.value !== "" && parseFloat(input.value) !== 0) {
-        input.value = (1 / parseFloat(input.value)).toString();
-    } else {
-        alert("Error: División entre 0");
-    }
-}
 
 // Calcular expresión
 function calcularResultado() {
     try {
-        equalPressed = 1;
+        stateObject.equalPressed = 1;
         const inputValue = input.value;
 
-        let expresion = inputValue;
+        // Guardar en stateObject antes de procesar
+        stateObject.expression = inputValue;
 
         // Validar con parser ANTES de reemplazos
         if (!parsear(inputValue)) return;
 
         // Reemplazos matemáticos
-        expresion = replaceFunction(inputValue);
+        let expresion = replaceFunction(inputValue);
 
         // Evaluar la expresión final 
         const result = evalExpresion(expresion);
 
-        // Mostrar resultado
-        inputView(result);
+        // Guardar resultado en stateObject
+        stateObject.result = result;
+
+        // Mostrar resultado en pantalla
+        showOnInput(result);
 
         // Guardar en historial/memoria
-        agregarId(inputValue, result);
+        agregarId(stateObject.expression, stateObject.result);
 
     } catch (error) {
         alert("Error: " + error.message);
@@ -120,81 +104,14 @@ function calcularResultado() {
 // Evento: calcular al presionar "="
 equal.addEventListener("click", calcularResultado);
 
-
-function inputView(result) {
+function showOnInput(result) {
     input.value = (typeof result === "string")
         ? result
         : (Number.isInteger(result) ? result : result.toFixed(2));
-}
-
-
-function replaceFunction(expresion) {
-    let output = expresion
-    output = output
-        .replaceAll("pow(", "Math.pow(")
-        .replaceAll("xylog(", "logxy(")
-        .replace(/(\d+\.?\d*)→dms/g, "DMS($1)")
-        .replace(/(\d+),(\d+),(\d+)→deg/g, "DEG($1,$2,$3)")
-        .replace(/∛(\d+(\.\d+)?|\([^()]+\))/g, "Math.cbrt($1)")
-        .replace(/²√(\d+(\.\d+)?|\([^()]+\))/g, "Math.sqrt($1)")
-        .replace(/yroot(\d+(\.\d+)?|\([^()]+\))/g, "Math.pow($1)")
-        .replaceAll("MOD(", "mod(")
-
-
-        // Trigonometría y logaritmos
-        .replaceAll(/\bacoth\b/g, "Math.acoth")
-        .replaceAll(/\bacsch\b/g, "Math.acsch")
-        .replaceAll(/\basech\b/g, "Math.asech")
-        .replaceAll(/\basin\b/g, "Math.asin")
-        .replaceAll(/\bacos\b/g, "Math.acos")
-        .replaceAll(/\batan\b/g, "Math.atan")
-        .replaceAll(/\basec\b/g, "Math.asec")
-        .replaceAll(/\bacsc\b/g, "Math.acsc")
-        .replaceAll(/\bacot\b/g, "Math.acot")
-        .replaceAll(/\basinh\b/g, "Math.asinh")
-        .replaceAll(/\bacosh\b/g, "Math.acosh")
-        .replaceAll(/\batanh\b/g, "Math.atanh")
-        .replaceAll(/\bsinh\b/g, "Math.sinh")
-        .replaceAll(/\bcosh\b/g, "Math.cosh")
-        .replaceAll(/\btanh\b/g, "Math.tanh")
-        .replaceAll(/\bcoth\b/g, "Math.coth")
-        .replaceAll(/\bcsch\b/g, "Math.csch")
-        .replaceAll(/\bsech\b/g, "Math.sech")
-        .replaceAll(/\bsin\b/g, "Math.sin")
-        .replaceAll(/\bcos\b/g, "Math.cos")
-        .replaceAll(/\btan\b/g, "Math.tan")
-        .replaceAll(/\bsec\b/g, "Math.sec")
-        .replaceAll(/\bcot\b/g, "Math.cot")
-        .replaceAll(/\bcsc\b/g, "Math.csc")
-
-
-        // Potencias y raíces
-        .replaceAll("²", "**2")
-        .replaceAll("³", "**3")
-
-
-        // Logs y exponenciales
-        .replaceAll("exp(", "EXPT(")
-        .replaceAll("ln(", "Math.log(")
-        .replaceAll("log(", "Math.log10(")
-        .replaceAll("e^(", "Math.exp(")
-        .replaceAll("10^", "10**")
-
-
-        // Otros
-        .replaceAll("|x|(", "Math.abs(")
-        .replaceAll("⌊x⌋(", "Math.floor(")
-        .replaceAll("⌈x⌉(", "Math.ceil(")
-        .replaceAll(/(\d+)!/g, (_, num) => factorial(Number(num)));
-
-    // Ajustar argumentos trigonométricos
-    output = transformarArgumentosTrigo(output);
-    return output;
 }
 
 function evalExpresion(expresion) {
     const result = Function('"use strict"; return(' + expresion + ')')();
     console.log("Expresión evaluada:", expresion);
     return result;
-
 }
