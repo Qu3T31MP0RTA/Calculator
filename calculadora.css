@@ -1,11 +1,38 @@
 /* =====================
+   Variables de colores
+   ===================== */
+:root {
+    --bg-body: #dadff7;
+    --bg-calculation: #090909;
+    --border-color: #6c6a6a;
+    --bg-history: #000000;
+    --text-white: white;
+    --text-black: black;
+    --bg-display: #6c6a6a;
+    --placeholder-color: #9490ac;
+    --bg-delete: #dadff7;
+    --bg-btn-equal: #f9544c;
+    --bg-hover-equal: #f9544ca8;
+    --bg-digit: #373737;
+    --bg-hover-digit: #373737a8;
+    --bg-color-btn: #6c6a6a;
+    --bg-hover-color-btn: #6c6a6aa8;
+    --bg-operation: #f69906;
+    --bg-hover-operation: #f69906a8;
+    --bg-side: #2a2a2a;
+    --bg-hover-side: #2a2a2aa8;
+    --bg-multi-f: #494949;
+}
+
+/* =====================
    1. Estilos generales
    ===================== */
 body {
     height: 100vh;
     margin: 0;
     font-family: "Roboto Mono", monospace;
-    background-color: #dadff7;
+    background-color: var(--bg-body);
+    /* Fondo general */
     /* Evita que la página se mueva */
 }
 
@@ -32,19 +59,19 @@ body {
    ===================== */
 .calculation {
     display: flex;
-    justify-content: center;
     flex-direction: column;
-    background-color: rgb(9, 9, 9);
-    width: 100%;
+    justify-content: center;
     align-items: center;
-    border-left: solid 0.5px #6c6a6a;
-    border-right: solid 0.5px #6c6a6a;
+    width: 100%;
+    background-color: var(--bg-calculation);
+    border-left: solid 0.5px var(--border-color);
+    border-right: solid 0.5px var(--border-color);
     z-index: 1;
-
 }
 
 .grafica {
     display: none;
+    /* Oculto por defecto */
 }
 
 h2 {
@@ -52,29 +79,30 @@ h2 {
 }
 
 .history {
-    background-color: rgb(0, 0, 0);
     width: 100%;
     margin: 0;
+    background-color: var(--bg-history);
 }
 
 .noMover {
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    position: fixed;
-    width: 60%;
     height: 100%;
     max-height: 300px;
 }
 
 .calculator .workSpace {
-    background-color: black;
     width: 100%;
+    background-color: var(--bg-history);
 }
 
+.workSpace {
+    display: none;
+}
 
 #historyTitle {
-    color: aliceblue;
+    color: var(--text-white);
     text-align: center;
 }
 
@@ -84,20 +112,20 @@ h2 {
 .display input {
     width: 95%;
     font-size: 35px;
-    color: white;
+    color: var(--text-white);
     text-align: right;
-    background-color: #6c6a6a;
-    border: 1px solid #6c6a6a;
+    background-color: var(--bg-display);
+    border: 1px solid var(--bg-display);
     border-radius: 3px;
 }
 
 .display input::placeholder {
-   margin-left:10px;
-    color: #9490ac;
+    margin-left: 10px;
+    color: var(--placeholder-color);
 }
 
 /* =====================
-   5. Botones (general)
+   5. Botones (contenedor)
    ===================== */
 .buttons {
     display: flex;
@@ -105,19 +133,20 @@ h2 {
     justify-content: center;
     gap: 5px;
     width: 90%;
-    margin: 0px 10px 0 10px;
+    margin: 0 10px;
     transform: translate(0, 80px);
+    /* Ajuste visual */
 }
 
 button {
-    font-size: 10px;
-    height: 29px;
-    padding: 7px;
     width: 100%;
+    height: 29px;
     margin: 3px;
+    padding: 7px;
+    font-size: 10px;
+    color: var(--text-white);
     border: none;
     border-radius: 2px;
-    color: white;
     cursor: pointer;
 }
 
@@ -125,6 +154,9 @@ button {
     font-size: 12px;
 }
 
+/* =====================
+   6. Botones (disposición)
+   ===================== */
 .orange,
 .blackLite,
 .black,
@@ -134,213 +166,77 @@ button {
 }
 
 .blackLite-memory {
-    margin-top: 35px;
     display: flex;
     flex-direction: column;
-    height: 280px;
     justify-content: flex-start;
+    height: 280px;
+    margin-top: 35px;
+}
+
+/* =====================
+   7. Scroll
+   ===================== */
+.scroll,
+.scroll1 {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    max-width: 500px;
+    overflow-y: auto;
 }
 
 .scroll {
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    align-items: flex-start;
     max-height: 300px;
-    max-width: 500px;
-    overflow-y: auto;
-
-
 }
 
 .scroll1 {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
     max-height: 350px;
-    max-width: 500px;
-    overflow-y: auto;
     margin: 0;
     padding: 0;
-
 }
 
+/* Oculta scrollbars */
+.scroll::-webkit-scrollbar,
 .scroll1::-webkit-scrollbar {
     display: none;
-
 }
 
-.scroll::-webkit-scrollbar {
-    display: none;
-
-}
-
+/* =====================
+   8. Historial
+   ===================== */
 .history-item {
-    color: white;
-    width: 95%;
     display: flex;
-    background-color: #6c6a6a;
     justify-content: space-between;
-    text-align: center;
     align-items: center;
+    width: 95%;
     margin: 10px !important;
     padding: 10px;
+    color: var(--text-white);
+    text-align: center;
+    background-color: var(--bg-display);
     border-radius: 3px;
 }
 
 .delete-history {
     width: 50px !important;
-    background-color: #dadff7 !important;
-
+    background-color: var(--bg-delete) !important;
 }
 
 .contenido {
     margin-left: 10px;
-
-    color: white;
+    color: var(--text-white);
 }
 
+/* =====================
+   9. Layout auxiliar
+   ===================== */
 .Flex-space {
     display: flex;
 }
 
-#Memory {
+.Flex {
     display: flex;
-    gap: 20px;
-    flex-direction: column;
-    align-items: flex-start;
-    width: 95%;
-    height: 300px;
-    margin-top: 20px;
-    margin-left: 10px;
-}
-
-#historyContent {
-
-    display: flex;
-    justify-content: space-around;
-    text-align: center;
-    align-items: center;
-    flex-direction: column;
-    width: 95%;
-    height: 250px;
-    margin-left: 10px;
-}
-
-#multiBtn {
-    background-color: #494949;
-    width: 50px;
-    height: 30px;
-}
-
-#fBtn {
-    background-color: #494949;
-    width: 50px;
-    height: 30px;
-}
-
-.specialButtons {
-    margin: 0;
-    padding: 0;
-    display: flex;
-    transform: translate(-218px, 120px);
-    z-index: 1;
-}
-
-/* =====================
-   6. Tipos de botones
-   ===================== */
-.digit-button {
-    background-color: #373737;
-}
-
-.digit-button:hover {
-    background-color: #373737a8;
-}
-
-.color-button {
-    background-color: #6c6a6a;
-}
-
-.color-button:hover {
-    background-color: #6c6a6aa8;
-}
-
-.operation-button {
-    background-color: #f69906;
-}
-
-.operation-button:hover {
-    background-color: #f69906a8;
-}
-
-.side-button {
-    background-color: #2a2a2a;
-}
-
-
-.side-button:hover {
-    background-color: #2a2a2aa8;
-}
-
-.memoryB {
-    background-color: #2a2a2a;
-}
-
-.memoryB:hover {
-    background-color: #2a2a2aa8;
-}
-
-/* =====================
-   7. Botones especiales
-   ===================== */
-#equal {
-    background-color: #f9544c;
-}
-
-#equal:hover {
-    background-color: #f9544ca8;
-}
-
-.basic {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    width: 80%;
-    margin-top: 40px;
-    margin-right: 10px;
-    margin-left: 10px;
-}
-
-.basic {
-    display: none;
-}
-
-
-
-.scientific {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    width: 90%;
-    margin-top: 5px;
-    margin-right: 10px;
-
-}
-
-
-.scientific-moreButtons {
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    width: 90%;
-    transform: translate(0, 20px);
-    margin-right: 10px;
-    margin-left: 10px;
 }
 
 .center {
@@ -349,39 +245,149 @@ button {
     justify-content: center;
 }
 
+/* =====================
+   10. Secciones de memoria
+   ===================== */
+#Memory {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    width: 95%;
+    height: 300px;
+    margin: 20px 0 0 10px;
+}
+
+#historyContent {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    width: 95%;
+    height: 250px;
+    margin-left: 10px;
+}
+
+#multiBtn,
+#fBtn {
+    width: 50px;
+    height: 30px;
+    background-color: var(--bg-multi-f);
+}
+
+/* =====================
+   11. Botones especiales
+   ===================== */
+.specialButtons {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    transform: translate(-218px, 120px);
+    z-index: 1;
+}
+
+#equal {
+    background-color: var(--bg-btn-equal);
+}
+
+#equal:hover {
+    background-color: var(--bg-hover-equal);
+}
+
+/* =====================
+   12. Tipos de botones
+   ===================== */
+.digit-button {
+    background-color: var(--bg-digit);
+}
+
+.digit-button:hover {
+    background-color: var(--bg-hover-digit);
+}
+
+.color-button {
+    background-color: var(--bg-color-btn);
+}
+
+.color-button:hover {
+    background-color: var(--bg-hover-color-btn);
+}
+
+.operation-button {
+    background-color: var(--bg-operation);
+}
+
+.operation-button:hover {
+    background-color: var(--bg-hover-operation);
+}
+
+.side-button,
+.memoryB {
+    background-color: var(--bg-side);
+}
+
+.side-button:hover,
+.memoryB:hover {
+    background-color: var(--bg-hover-side);
+}
+
+/* =====================
+   13. Modos (básico y científico)
+   ===================== */
+.basic {
+    display: none;
+    /* Oculto inicialmente */
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 80%;
+    margin: 40px 10px 0 10px;
+}
+
+.scientific {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 90%;
+    margin: 5px 10px 0 0;
+}
+
+.scientific-moreButtons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 90%;
+    margin: 0 10px;
+    transform: translate(0, 20px);
+}
+
+/* =====================
+   14. Memoria extra
+   ===================== */
 .memoryButton {
     display: none;
     flex-direction: column;
 }
 
 .editarr {
-    color: black;
     width: 50px;
+    color: var(--text-black);
 }
 
 .borrar,
 .Mmenos,
 .Mmas {
-    justify-content: center;
-    color: black;
-    width: 50px;
     display: none;
+    width: 50px;
+    color: var(--text-black);
+    justify-content: center;
 }
 
-.contenido:hover .Mmenos {
-    display: flex;
-}
-
-
+/* Mostrar acciones al pasar el mouse */
+.contenido:hover .Mmenos,
+.contenido:hover .Mmas,
 .contenido:hover .borrar {
     display: flex;
-}
-
-.contenido:hover .Mmas {
-    display: flex;
-}
-
-.Flex {
-    display: flex;
-
 }
